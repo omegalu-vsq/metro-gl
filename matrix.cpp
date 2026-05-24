@@ -1,23 +1,27 @@
 #include "matrix.hh"
 
+#include <vector>
+
+#include "vector.hh"
+
 namespace gl {
     matrix4::matrix4() {
         mat.assign(4 * 4, 0.0f);
     }
 
-    GLfloat matrix4::get(int i, int j) {
-        return mat.get(j * 4 + i);
+    GLfloat matrix4::get(int i, int j) const {
+        return mat.at(j * 4 + i);
     }
 
     void matrix4::insert_line(Vector3& vec, int j) {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
             mat[j * 4 + i] = vec[i];
     }
 
     void matrix4::insert_mat3(std::vector<Vector3>& mat) {
-        for (int j = 0; j < 2; j++)
-            for (int i = 0; i < 2; i++)
-                this->mat[j * 4 = i] = mat[j][i];
+        for (int j = 0; j < 3; j++)
+            for (int i = 0; i < 3; i++)
+                this->mat[j * 4 + i] = mat[j][i];
 
         this->mat[3 * 4 + 3] = 1;
     }

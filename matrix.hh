@@ -1,7 +1,9 @@
 #pragma once
 
+#include "vector.hh"
+
 #include <vector>
-#include <GL/ut.h>
+#include <GL/glut.h>
 
 namespace gl {
     class matrix4 {
@@ -10,7 +12,7 @@ namespace gl {
 
         matrix4();
 
-        GLfloat get(int im int j);
+        GLfloat get(int im, int j);
 
         void insert_line(Vector3& vec, int j);
 

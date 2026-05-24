@@ -1,10 +1,11 @@
 #pragma once
+
 #include <cstdlib>
 #include <iostream>
 
-#include <GL/ut.h>
+#include <GL/glut.h>
 
-namespace ray {
+namespace gl {
     class Vector3 {
         public:
             GLfloat x_;

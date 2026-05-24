@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 
-namespace ray {
+namespace gl {
 
     // VECTOR 3
     Vector3::Vector3(GLfloat x, GLfloat y, GLfloat z) : x_(x), y_(y), z_(z)

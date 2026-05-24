@@ -1,6 +1,8 @@
-#include "helpers.hh"
+#include "camera.hh"
 
-#include <GL/ut.h>
+#include <vector>
+
+#include <GL/glut.h>
 
 namespace gl {
 

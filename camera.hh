@@ -1,6 +1,8 @@
 #pragma once
 
-#include <GL/ut.h>
+#include "matrix.hh"
+
+#include <GL/glut.h>
 
 namespace gl {
 

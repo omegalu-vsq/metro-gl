@@ -3,8 +3,8 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-bool init_glut() {
-    glutInit(int& arg, char* argv[]);
+bool init_glut(int* argc, char* argv[]) {
+    glutInit(argc, argv);
     glutInitContextVersion(4,5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
@@ -17,13 +17,17 @@ bool init_glut() {
 
 bool init_glew() {
     return glewInit() == GLEW_OK;
+
+    return true;
 }
 
 bool init_gl() {
+
+    return true;
 }
 
 int main(int argc, char* argv[]) {
-    init_glut(argc, argv);
+    init_glut(&argc, argv);
     init_glew();
     init_gl();
 
