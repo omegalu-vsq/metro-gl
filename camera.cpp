@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <GL/glut.h>
+#include <GL/glew.h>
 
 namespace gl {
 

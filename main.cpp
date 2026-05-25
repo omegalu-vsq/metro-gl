@@ -17,11 +17,10 @@ bool init_glut(int* argc, char* argv[]) {
 
 bool init_glew() {
     return glewInit() == GLEW_OK;
-
-    return true;
 }
 
 bool init_gl() {
+    glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
 
     return true;
 }

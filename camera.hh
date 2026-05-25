@@ -2,7 +2,7 @@
 
 #include "matrix.hh"
 
-#include <GL/glut.h>
+#include <GL/glew.h>
 
 namespace gl {
 

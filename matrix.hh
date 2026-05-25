@@ -3,7 +3,7 @@
 #include "vector.hh"
 
 #include <vector>
-#include <GL/glut.h>
+#include <GL/glew.h>
 
 namespace gl {
     class matrix4 {
@@ -12,7 +12,7 @@ namespace gl {
 
         matrix4();
 
-        GLfloat get(int im, int j);
+        GLfloat get(int im, int j) const;
 
         void insert_line(Vector3& vec, int j);
 

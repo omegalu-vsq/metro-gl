@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <GL/glut.h>
+#include <GL/glew.h>
 
 namespace gl {
     class Vector3 {
