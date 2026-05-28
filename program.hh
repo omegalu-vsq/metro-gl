@@ -15,7 +15,7 @@ namespace gl {
         bool state_;
 
         Program(GLuint id) : id_(id), state_(false) {}
-        ~Program() = default;
+        ~Program();
 
         public:
 

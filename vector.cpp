@@ -63,9 +63,10 @@ namespace gl {
     }
 
     GLfloat& Vector3::operator[](int i) {
+        i = i % 3;
         if (i == 0) return this->x_;
         else if (i == 1) return this->y_;
-        else if (i == 2) return this->z_;
+        else return this->z_;
     }
 
     std::ostream& operator<<(std::ostream &out,Vector3 &vect) {

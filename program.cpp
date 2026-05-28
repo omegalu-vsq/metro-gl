@@ -25,7 +25,7 @@ namespace gl {
         return info;
     }
 
-    std::string& readFile(const std::string& src) {
+    std::string readFile(const std::string& src) {
         std::ifstream file(src);
         std::string str;
         std::string file_contents;
@@ -39,7 +39,7 @@ namespace gl {
     }
 
     GLuint Program::compile_shader(const std::string& src) {
-        std::string& shader = readFile(src);
+        std::string shader = readFile(src);
 
         const GLchar* files[] = { shader.c_str() };
         const GLint lengths[] = { shader.size() };

@@ -16,9 +16,9 @@ namespace gl {
 
         void insert_line(Vector3& vec, int j);
 
-        void matrix4::insert_mat3(std::vector<Vector3>& mat);
+        void insert_mat3(std::vector<Vector3>& mat);
 
-        void matrix4::insert_mat4(std::vector<std::vector<GLfloat>>& mat);
+        void insert_mat4(std::vector<std::vector<GLfloat>>& mat);
 
         void operator*=(const matrix4& rhs);
 
