@@ -21,11 +21,11 @@ namespace gl {
         Camera camera_;
 
         Program(GLuint id) : id_(id), state_(false) {}
-        ~Program();
 
         public:
+        ~Program();
         
-        static GLuint compile_shader(const std::string& src);
+        static GLuint compile_shader(const std::string& src, GLenum type);
         static Program make_program(const std::string& vertex_src, const std::string& framgent_src);
 
         GLuint getId() { return id_; }
@@ -37,6 +37,8 @@ namespace gl {
 
         void init_object();
         void init_POV();
+
+        void display();
 
     };
 }

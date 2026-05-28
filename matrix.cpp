@@ -9,6 +9,10 @@ namespace gl {
         mat.assign(4 * 4, 0.0f);
     }
 
+    GLfloat* matrix4::data() {
+        return mat.data();
+    }
+
     GLfloat matrix4::get(int i, int j) const {
         return mat.at(j * 4 + i);
     }
@@ -67,6 +71,24 @@ namespace gl {
         out << ']' << std::endl;
 
         return out;
+    }
+
+    matrix4 matrix4::glmat() {
+        matrix4 res;
+        std::vector<std::vector<GLfloat>> resvec;
+
+        for (int j = 0; j < 4; j++) {
+            std::vector<GLfloat> line;
+
+            for (int i = 0; i < 4; i++)
+                line.push_back(get(j, i));
+
+            resvec.push_back(line);
+        }
+
+        res.insert_mat4(resvec);
+
+        return res;
     }
 
 

@@ -43,13 +43,13 @@ namespace gl {
         return file_contents;
     }
 
-    GLuint Program::compile_shader(const std::string& src) {
+    GLuint Program::compile_shader(const std::string& src, GLenum type) {
         std::string shader = readFile(src);
 
         const GLchar* files[] = { shader.c_str() };
-        const GLint lengths[] = { shader.size() };
+        const GLint lengths[] = { static_cast<GLint>(shader.size()) };
 
-        GLuint id = glCreateShader(GL_VERTEX_SHADER);
+        GLuint id = glCreateShader(type);
         glShaderSource(id, 1, files, lengths);
         glCompileShader(id);
         
@@ -86,12 +86,12 @@ namespace gl {
 
 
     Program Program::make_program(const std::string& vertex_src, const std::string& fragment_src) {
-        GLuint vertex_id = compile_shader(vertex_src); 
+        GLuint vertex_id = compile_shader(vertex_src, GL_VERTEX_SHADER); 
         if (!vertex_id) {
         
         }
 
-        GLuint fragment_id = compile_shader(fragment_src); 
+        GLuint fragment_id = compile_shader(fragment_src, GL_FRAGMENT_SHADER); 
         if (!fragment_id) {
 
         }
@@ -150,7 +150,7 @@ namespace gl {
         glGenBuffers(1, &vbo_id);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-        glBufferData(GL_ARRAY_BUFFER, cube_buffer * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cube_buffer) * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(vertex_position);
 
@@ -158,10 +158,33 @@ namespace gl {
     }
 
     void Program::init_POV() {
-        camera_.lookat();
-        camera_.frustrum();
+        GLuint proj_id, model_id;
 
-        //glUnifor
+        camera_.lookat(-2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        camera_.frustrum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
+
+        model_id = glGetUniformLocation(this->id_, "model_view_matrix");
+        proj_id = glGetUniformLocation(this->id_, "projection_matrix");
+
+        glUniformMatrix4fv(model_id, 1, GL_TRUE, camera_.model_view.data());
+        glUniformMatrix4fv(proj_id, 1, GL_TRUE, camera_.projection.data());
+    }
+
+    void Program::display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
+
+        GLuint color_id = glGetUniformLocation(this->id_, "color");
+
+        Vector3 color{0.8, 0.3, 0.1};
+        
+        glUniform3fv(color_id, 1, color.data());
+
+        glBindVertexArray(this->vao_id_);
+
+        glDrawArrays(GL_TRIANGLES, 0, cube_buffer.size());
+
+        glBindVertexArray(0);
     }
 
 

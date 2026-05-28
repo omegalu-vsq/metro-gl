@@ -6,9 +6,9 @@
 
 namespace gl {
 
-    void Camera::lookat(GLfloat& ex, GLfloat& ey, GLfloat& ez,
-                GLfloat& cx, GLfloat& cy, GLfloat& cz,
-                GLfloat& ux, GLfloat& uy, GLfloat& uz) {
+    void Camera::lookat(GLfloat ex, GLfloat ey, GLfloat ez,
+                GLfloat cx, GLfloat cy, GLfloat cz,
+                GLfloat ux, GLfloat uy, GLfloat uz) {
 
         Vector3 front = {cx - ex, cy - ey, cz - ez};
         front.normalize();
@@ -32,8 +32,8 @@ namespace gl {
         projection.insert_mat3(proj3);
     }
 
-    void Camera::frustrum(GLfloat& left, GLfloat& right, GLfloat& bottom, GLfloat& top,
-                  GLfloat& near, GLfloat& far) {
+    void Camera::frustrum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
+                  GLfloat near, GLfloat far) {
 
         GLfloat A = (right + left) / (right - left);
         GLfloat B = (top + bottom) / (top - bottom);

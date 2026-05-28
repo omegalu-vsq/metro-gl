@@ -12,6 +12,8 @@ namespace gl {
 
         matrix4();
 
+        GLfloat* data();
+
         GLfloat get(int im, int j) const;
 
         void insert_line(Vector3& vec, int j);
@@ -19,6 +21,8 @@ namespace gl {
         void insert_mat3(std::vector<Vector3>& mat);
 
         void insert_mat4(std::vector<std::vector<GLfloat>>& mat);
+        
+        matrix4 glmat();
 
         void operator*=(const matrix4& rhs);
 

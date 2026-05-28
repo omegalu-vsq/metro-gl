@@ -85,6 +85,13 @@ namespace gl {
         return std::sqrt(x_*x_ + y_*y_ + z_*z_);
     }
 
+    GLfloat* Vector3::data() {
+        static thread_local GLfloat arr[3];
+        arr[0] = x_;
+        arr[1] = y_;
+        arr[2] = z_;
+        return arr;
+    } 
 
     /*
     // VECTOR 4

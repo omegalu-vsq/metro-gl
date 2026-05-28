@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -31,6 +32,7 @@ namespace gl {
 
             void normalize();
             GLfloat norm();
+            GLfloat* data(); 
 
             friend std::ostream& operator<<(std::ostream &out,Vector3 &vect);
     };

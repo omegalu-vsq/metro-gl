@@ -13,9 +13,9 @@ namespace gl {
 
         Camera() = default;
 
-        void lookat(GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&);
+        void lookat(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
 
-        void frustrum(GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&, GLfloat&);
+        void frustrum(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
 
     };
 
