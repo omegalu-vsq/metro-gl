@@ -1,17 +1,22 @@
 #include "program.hh"
 
+#include "object.hh"
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include <GL/glew.h>
+#include <GL/freeglut.h>
 
 namespace gl {
 
     Program::~Program() {
         glDetachShader(id_, vertex_id_);
         glDetachShader(id_, fragment_id_);
+        glDeleteShader(vertex_id_);
+        glDeleteShader(fragment_id_);
         glDeleteProgram(id_);
     }
 
@@ -116,6 +121,8 @@ namespace gl {
 
             glDetachShader(id, vertex_id);
             glDetachShader(id, fragment_id);
+            glDeleteShader(vertex_id);
+            glDeleteShader(fragment_id);
             glDeleteProgram(id);
 
             return program;
@@ -130,5 +137,32 @@ namespace gl {
     void Program::use() {
         glUseProgram(this->id_);
     }
+
+    void Program::init_object() {
+        GLuint vbo_id;
+        GLint vertex_position = glGetAttribLocation(this->id_, "position");
+
+        if (vertex_position == -1) return; 
+
+        glGenVertexArrays(1, &vao_id_);
+        glBindVertexArray(vao_id_);
+
+        glGenBuffers(1, &vbo_id);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+        glBufferData(GL_ARRAY_BUFFER, cube_buffer * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(vertex_position);
+
+        glBindVertexArray(0);
+    }
+
+    void Program::init_POV() {
+        camera_.lookat();
+        camera_.frustrum();
+
+        //glUnifor
+    }
+
 
 }

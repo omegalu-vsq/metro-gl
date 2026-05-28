@@ -8,7 +8,8 @@ namespace gl {
 
     class Camera {
         public:
-        matrix4 proj;
+        matrix4 model_view;
+        matrix4 projection;
 
         Camera() = default;
 

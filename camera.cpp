@@ -29,7 +29,7 @@ namespace gl {
         proj3.push_back(u);
         proj3.push_back(front);
 
-        proj.insert_mat3(proj3);
+        projection.insert_mat3(proj3);
     }
 
     void Camera::frustrum(GLfloat& left, GLfloat& right, GLfloat& bottom, GLfloat& top,
@@ -57,6 +57,6 @@ namespace gl {
         matrix4 mat;
         mat.insert_mat4(matmat);
 
-        proj *= mat;
+        projection *= mat;
     }
 }
