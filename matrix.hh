@@ -21,6 +21,8 @@ namespace gl {
         void insert_mat3(std::vector<Vector3>& mat);
 
         void insert_mat4(std::vector<std::vector<GLfloat>>& mat);
+
+        void translation(GLfloat x, GLfloat y, GLfloat z);
         
         matrix4 glmat();
 

@@ -150,7 +150,7 @@ namespace gl {
         glGenBuffers(1, &vbo_id);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cube_buffer) * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, cube_buffer.size() * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(vertex_position);
 
@@ -158,7 +158,7 @@ namespace gl {
     }
 
     void Program::init_POV() {
-        GLuint proj_id, model_id;
+        GLint proj_id, model_id;
 
         camera_.lookat(-2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
         camera_.frustrum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
@@ -174,7 +174,7 @@ namespace gl {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
 
-        GLuint color_id = glGetUniformLocation(this->id_, "color");
+        GLint color_id = glGetUniformLocation(this->id_, "color");
 
         Vector3 color{0.8, 0.3, 0.1};
         
@@ -182,7 +182,7 @@ namespace gl {
 
         glBindVertexArray(this->vao_id_);
 
-        glDrawArrays(GL_TRIANGLES, 0, cube_buffer.size());
+        glDrawArrays(GL_TRIANGLES, 0, cube_buffer.size() / 3);
 
         glBindVertexArray(0);
     }

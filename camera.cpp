@@ -24,12 +24,14 @@ namespace gl {
         Vector3 u = side ^ front;
         u.normalize();
 
-        std::vector<Vector3> proj3;
-        proj3.push_back(side);
-        proj3.push_back(u);
-        proj3.push_back(front);
+        std::vector<Vector3> view_rotation;
+        view_rotation.push_back(side);
+        view_rotation.push_back(u);
+        view_rotation.push_back(front);
 
-        projection.insert_mat3(proj3);
+        model_view.insert_mat3(view_rotation);
+
+        model_view.translation(-ex, -ey, -ez);
     }
 
     void Camera::frustrum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
@@ -37,7 +39,7 @@ namespace gl {
 
         GLfloat A = (right + left) / (right - left);
         GLfloat B = (top + bottom) / (top - bottom);
-        GLfloat C = (far + near) / (far - near);
+        GLfloat C = -((far + near) / (far - near));
         GLfloat D = -((2 * far * near) / (far - near));
         GLfloat E = 2 * near / (right - left);
         GLfloat F = 2 * near / (top - bottom);
@@ -54,9 +56,6 @@ namespace gl {
         matmat.push_back(l3);
         matmat.push_back(l4);
 
-        matrix4 mat;
-        mat.insert_mat4(matmat);
-
-        projection *= mat;
+        projection.insert_mat4(matmat);
     }
 }

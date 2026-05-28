@@ -13,7 +13,7 @@ void display_master() {
 }
 
 void window_resize(int width, int height) {
-  glViewport(0,0,width,height);
+    glViewport(0,0,width,height);
 }
 
 bool init_glut(int* argc, char* argv[]) {
@@ -36,6 +36,7 @@ bool init_glew() {
 
 bool init_gl() {
     glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
 
     return true;
 }

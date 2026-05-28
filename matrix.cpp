@@ -36,6 +36,18 @@ namespace gl {
                 this->mat[j * 4 + i] = mat[j][i];
     }
 
+    void matrix4::translation(GLfloat x, GLfloat y, GLfloat z) {
+        std::vector<std::vector<GLfloat>> mat;
+        mat.push_back({1.0f, 0.0f, 0.0f, x});
+        mat.push_back({0.0f, 1.0f, 0.0f, y});
+        mat.push_back({0.0f, 0.0f, 1.0f, z});
+        mat.push_back({0.0f, 0.0f, 0.0f, 1.0f});
+
+        matrix4 translation;
+        translation.insert_mat4(mat);
+        *this *= translation;
+    }
+
     void matrix4::operator*=(const matrix4& rhs) {
         std::vector<GLfloat> tmp(4 * 4, 0.0f);
 
