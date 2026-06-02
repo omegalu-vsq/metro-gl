@@ -8,25 +8,22 @@
 #include <GL/glew.h>
 
 namespace gl {
-    class Program {
+    class ShaderProgram {
 
         GLuint id_;
         GLuint vertex_id_;
         GLuint fragment_id_;
 
-        GLuint vao_id_;
-
         bool state_;
 
-        Camera camera_;
-
-        Program(GLuint id) : id_(id), state_(false) {}
+        ShaderProgram(GLuint id) : id_(id), vertex_id_(0), fragment_id_(0), state_(false) {}
 
         public:
-        ~Program();
+        ShaderProgram(const ShaderProgram& obj) = delete;
+        ShaderProgram(ShaderProgram&& obj);
+        ~ShaderProgram();
         
-        static GLuint compile_shader(const std::string& src, GLenum type);
-        static Program make_program(const std::string& vertex_src, const std::string& framgent_src);
+        static ShaderProgram make_program(const std::string& vertex_src, const std::string& framgent_src);
 
         GLuint getId() { return id_; }
 
@@ -35,8 +32,9 @@ namespace gl {
         
         void use();
 
-        void init_object();
-        void init_POV();
+        //void init_object();
+
+        void init_POV(Camera camera);
 
         void display();
 

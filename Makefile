@@ -1,19 +1,19 @@
 CC = g++
 
-CPP_FILES = camera.cpp matrix.cpp program.cpp vector.cpp
-HXX_FILES = camera.hh matrix.hh program.hh vector.hh
+CPP_FILES = camera.cpp matrix.cpp program.cpp vector.cpp scene.cpp metrogl.cpp
+HXX_FILES = camera.hh matrix.hh program.hh vector.hh scene.hh metrogl.hh
 OBJ_FILES = $(CPP_FILES:.cpp=.o)
 
-CXX_FLAGS += -Wall -Wextra -O3 -g -std=c++11
+CXX_FLAGS += -Wall -Wextra -O3 -g -std=c++14
 CXX_FLAGS +=
 CXX_FLAGS += -m64 -march=native
 CXX_FLAGS += -fopt-info-vec-optimized #-fopt-info-vec-missed -ftree-vectorize
 #CXX_FLAGS += -I/home/jonathan/work/enseignement/matieres/synthese/prog/opengl/compute_shader/jf_gl_tools/build_head/src
-LDXX_FLAGS = -lGL  -lGLEW -lglut -lpthread
+LDXX_FLAGS = -lGL  -lGLEW -lglut -lpthread -lassimp
 #LDXX_FLAGS += /home/jonathan/work/enseignement/matieres/synthese/prog/opengl/compute_shader/jf_gl_tools/dist_lib/libjfglt.a
 
 MAIN_FILE = main.cpp
-DIST = main
+DIST = metro-gl
 
 SKEL_DIST_DIR = metro-gl
 SKEL_FILES = $(CPP_FILES) $(HXX_FILES) $(MAIN_FILE) Makefile vertex.shd fragment.shd

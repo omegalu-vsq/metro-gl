@@ -12,7 +12,17 @@
 
 namespace gl {
 
-    Program::~Program() {
+    ShaderProgram::ShaderProgram(ShaderProgram&& obj) : id_(obj.id_), vertex_id_(obj.vertex_id_),
+                                                        fragment_id_(obj.fragment_id_), state_(obj.state_) {
+        obj.id_ = 0;
+        obj.vertex_id_ = 0;
+        obj.fragment_id_ = 0;
+        obj.state_ = false;
+    }
+
+    ShaderProgram::~ShaderProgram() {
+        if (!id_) return;
+
         glDetachShader(id_, vertex_id_);
         glDetachShader(id_, fragment_id_);
         glDeleteShader(vertex_id_);
@@ -20,7 +30,7 @@ namespace gl {
         glDeleteProgram(id_);
     }
 
-    char* Program::get_log() {
+    char* ShaderProgram::get_log() {
         int info_length = 0;
         glGetProgramiv(this->id_, GL_INFO_LOG_LENGTH, &info_length);
 
@@ -43,7 +53,7 @@ namespace gl {
         return file_contents;
     }
 
-    GLuint Program::compile_shader(const std::string& src, GLenum type) {
+    GLuint compile_shader(const std::string& src, GLenum type) {
         std::string shader = readFile(src);
 
         const GLchar* files[] = { shader.c_str() };
@@ -85,7 +95,7 @@ namespace gl {
     }
 
 
-    Program Program::make_program(const std::string& vertex_src, const std::string& fragment_src) {
+    ShaderProgram ShaderProgram::make_program(const std::string& vertex_src, const std::string& fragment_src) {
         GLuint vertex_id = compile_shader(vertex_src, GL_VERTEX_SHADER); 
         if (!vertex_id) {
         
@@ -97,9 +107,9 @@ namespace gl {
         }
 
         GLuint id = glCreateProgram();
-        Program program{id};
+        ShaderProgram program{id};
         if (!id) {
-            std::cerr << "/!\\ Program creation failure /!\\\n";
+            std::cerr << "/!\\ ShaderProgram creation failure /!\\\n";
 
             auto info = program.get_log();
             std::cerr << info << std::endl;
@@ -114,7 +124,7 @@ namespace gl {
         int link_status = 0;
         glGetProgramiv(id, GL_LINK_STATUS, &link_status);
         if (link_status != GL_TRUE) {
-            std::cerr << "/!\\ Program linkage failure /!\\\n";
+            std::cerr << "/!\\ ShaderProgram linkage failure /!\\\n";
 
             auto info = program.get_log();
             std::cerr << info << std::endl;
@@ -134,11 +144,13 @@ namespace gl {
         return program;
     }
 
-    void Program::use() {
+    void ShaderProgram::use() {
         glUseProgram(this->id_);
     }
 
-    void Program::init_object() {
+
+    /*
+    void ShaderProgram::init_object() {
         GLuint vbo_id;
         GLint vertex_position = glGetAttribLocation(this->id_, "position");
 
@@ -156,21 +168,19 @@ namespace gl {
 
         glBindVertexArray(0);
     }
+    */
 
-    void Program::init_POV() {
+    void ShaderProgram::init_POV(Camera camera) {
         GLint proj_id, model_id;
-
-        camera_.lookat(-2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-        camera_.frustrum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
 
         model_id = glGetUniformLocation(this->id_, "model_view_matrix");
         proj_id = glGetUniformLocation(this->id_, "projection_matrix");
 
-        glUniformMatrix4fv(model_id, 1, GL_TRUE, camera_.model_view.data());
-        glUniformMatrix4fv(proj_id, 1, GL_TRUE, camera_.projection.data());
+        glUniformMatrix4fv(model_id, 1, GL_TRUE, camera.model_view.data());
+        glUniformMatrix4fv(proj_id, 1, GL_TRUE, camera.projection.data());
     }
 
-    void Program::display() {
+    void ShaderProgram::display() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
 
@@ -180,7 +190,7 @@ namespace gl {
         
         glUniform3fv(color_id, 1, color.data());
 
-        glBindVertexArray(this->vao_id_);
+        //glBindVertexArray(this->vao_id_);
 
         glDrawArrays(GL_TRIANGLES, 0, cube_buffer.size() / 3);
 
