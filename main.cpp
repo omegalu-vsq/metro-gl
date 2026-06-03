@@ -17,6 +17,11 @@ void window_resize(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+void special_key(int key, int, int) {
+    app.handle_special_key(key);
+    glutPostRedisplay();
+}
+
 bool init_glut(int* argc, char* argv[]) {
     glutInit(argc, argv);
     glutInitContextVersion(4,5);
@@ -27,6 +32,7 @@ bool init_glut(int* argc, char* argv[]) {
     glutCreateWindow("MétroGL");
     glutDisplayFunc(display_master);
     glutReshapeFunc(window_resize);
+    glutSpecialFunc(special_key);
 
     return true;
 }
