@@ -186,7 +186,7 @@ namespace gl {
 
         GLint color_id = glGetUniformLocation(this->id_, "color");
 
-        Vector3 color{0.8, 0.3, 0.1};
+        Vector3 color{0.8f, 0.3f, 0.1f};
         
         glUniform3fv(color_id, 1, color.data());
 

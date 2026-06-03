@@ -10,6 +10,29 @@ namespace gl {
     void GLobject::init(Camera camera) {
         shaders_.use();
         shaders_.init_POV(camera);
+
+        GLuint nb_lights = 8;
+        GLint lights_id, nb_lights_id, light_color_id;
+        std::vector<GLfloat> lights;
+
+        lights_id = glGetUniformLocation(shaders_.getId(), "lights");
+        nb_lights_id = glGetUniformLocation(shaders_.getId(), "nb_light");
+        light_color_id = glGetUniformLocation(shaders_.getId(), "light_color");
+
+        glUniform1i(nb_lights_id, nb_lights);
+        
+        Vector3 color{1.0f, 1.0f, 1.0f};
+        glUniform3fv(light_color_id, 1, color.data());
+
+        for (size_t i = 0; i < nb_lights; i++) {
+            GLfloat z = -41.7f + i * (83.8f / nb_lights) + (83.f / (nb_lights * 2));
+
+            lights.push_back(14.0f);
+            lights.push_back(8.5f);
+            lights.push_back(z);
+        }
+
+        glUniform3fv(lights_id, nb_lights, lights.data());
     }
 
     void Scene::init_POV(Camera camera) {
@@ -123,6 +146,7 @@ namespace gl {
         std::cout << "Meshes: " << scene->mNumMeshes << std::endl;
 
         for (size_t i = 0; i < scene->mNumMeshes; i++) {
+            std::cout << "Mesh n°" << i << ": " << scene->mMeshes[i]->mName.C_Str() << '\n';
             std::string name = scene->mMeshes[i]->mName.C_Str();
 
             if (name == "quai.1") {
@@ -153,7 +177,6 @@ namespace gl {
 
                 voute = std::make_unique<GLobject>(std::move(obj));
             }
-            std::cout << "Mesh n°" << i << ": " << scene->mMeshes[i]->mName.C_Str() << '\n';
         }
 
     }
