@@ -28,7 +28,7 @@ namespace gl {
             GLfloat z = -41.7f + i * (83.8f / nb_lights) + (83.f / (nb_lights * 2));
 
             lights.push_back(14.0f);
-            lights.push_back(8.5f);
+            lights.push_back(4.5f);
             lights.push_back(z);
         }
 
@@ -36,10 +36,8 @@ namespace gl {
     }
 
     void Scene::init_POV(Camera camera) {
-        quai1.get()->init(camera);
-        quai2.get()->init(camera);
-        voute.get()->init(camera);
-        voies.get()->init(camera);
+        for (size_t i = 0; i < station_obj.size(); i++)
+            station_obj.at(i).get()->init(camera);
     }
 
     void load_mesh(const aiMesh* src, std::vector<GLfloat>& vec) {
@@ -129,10 +127,14 @@ namespace gl {
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        quai1.get()->draw(Vector3{0.122f, 0.122f, 0.122f});
-        quai2.get()->draw(Vector3{0.122f, 0.122f, 0.122f});
-        voute.get()->draw(Vector3{1.0f, 1.0f, 1.0f});
-        voies.get()->draw(Vector3{0.31f, 0.31f, 0.251f});
+        quai1->draw(Vector3{0.4f, 0.4f, 0.4});
+        quai2->draw(Vector3{0.4f, 0.4f, 0.4f});
+        voute->draw(Vector3{1.0f, 1.0f, 1.0f});
+        voies->draw(Vector3{0.1f, 0.1f, 0.1f});
+        sous_quai1->draw(Vector3{0.1f, 0.1f, 0.1f});
+        sous_quai2->draw(Vector3{0.1f, 0.1f, 0.1f});
+        mur1->draw(Vector3{1.0f, 1.0f, 1.0f});
+        mur2->draw(Vector3{1.0f, 1.0f, 1.0f});
     }
 
 
@@ -152,30 +154,66 @@ namespace gl {
             if (name == "quai.1") {
                 auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd");
 
-                GLobject obj = GLobject::make_object(scene->mMeshes[i], std::move(shaders));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
 
-                quai1 = std::make_unique<GLobject>(std::move(obj));
+                station_obj.push_back(std::move(obj));
+                quai1 = station_obj.back().get();
             }
             if (name == "quai.2") {
                 auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd");
 
-                GLobject obj = GLobject::make_object(scene->mMeshes[i], std::move(shaders));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
 
-                quai2 = std::make_unique<GLobject>(std::move(obj));
+                station_obj.push_back(std::move(obj));
+                quai2 = station_obj.back().get();
             }
             if (name == "voies") {
                 auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd");
 
-                GLobject obj = GLobject::make_object(scene->mMeshes[i], std::move(shaders));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
 
-                voies = std::make_unique<GLobject>(std::move(obj));
+                station_obj.push_back(std::move(obj));
+                voies = station_obj.back().get();
             }
             if (name == "voute") {
                 auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd");
 
-                GLobject obj = GLobject::make_object(scene->mMeshes[i], std::move(shaders));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
 
-                voute = std::make_unique<GLobject>(std::move(obj));
+                station_obj.push_back(std::move(obj));
+                voute = station_obj.back().get();
+            }
+            if (name == "mur.1") {
+                auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd");
+
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
+
+                station_obj.push_back(std::move(obj));
+                mur1 = station_obj.back().get();
+            }
+            if (name == "mur.2") {
+                auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd");
+
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
+
+                station_obj.push_back(std::move(obj));
+                mur2 = station_obj.back().get();
+            }
+            if (name == "sous.quai.1") {
+                auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd");
+
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
+
+                station_obj.push_back(std::move(obj));
+                sous_quai1 = station_obj.back().get();
+            }
+            if (name == "sous.quai.2") {
+                auto shaders = ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd");
+
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], std::move(shaders)));
+
+                station_obj.push_back(std::move(obj));
+                sous_quai2 = station_obj.back().get();
             }
         }
 

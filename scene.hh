@@ -34,13 +34,19 @@ namespace gl {
 
     class Scene {
         public:
+
+        std::vector<std::unique_ptr<GLobject>> station_obj;
         
-        std::unique_ptr<GLobject> quai1;
-        std::unique_ptr<GLobject> quai2;
+        GLobject* quai1 = nullptr;
+        GLobject* quai2 = nullptr;
+        GLobject* sous_quai1 = nullptr;
+        GLobject* sous_quai2 = nullptr;
 
-        std::unique_ptr<GLobject> voies;
+        GLobject* voies = nullptr;
 
-        std::unique_ptr<GLobject> voute;
+        GLobject* voute = nullptr;
+        GLobject* mur1 = nullptr;
+        GLobject* mur2 = nullptr;
 
         Scene() = default;
 
