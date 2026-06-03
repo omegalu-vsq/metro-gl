@@ -33,8 +33,6 @@ namespace gl {
     }
 
     void MetroGL::update_camera() {
-        camera_ = Camera{};
-
         camera_.lookat(camera_x_, camera_y_, camera_z_,
                        camera_x_ + std::sin(yaw_), camera_y_, camera_z_ - std::cos(yaw_),
                        0.0f, -1.0f, 0.0f);

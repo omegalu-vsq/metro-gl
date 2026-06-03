@@ -10,6 +10,8 @@ namespace gl {
                 GLfloat cx, GLfloat cy, GLfloat cz,
                 GLfloat ux, GLfloat uy, GLfloat uz) {
 
+        model_view = matrix4{};
+
         Vector3 front = {cx - ex, cy - ey, cz - ez};
         front.normalize();
 
@@ -36,6 +38,8 @@ namespace gl {
 
     void Camera::frustrum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
                   GLfloat near, GLfloat far) {
+
+        projection = matrix4{};
 
         GLfloat A = (right + left) / (right - left);
         GLfloat B = (top + bottom) / (top - bottom);

@@ -129,10 +129,10 @@ namespace gl {
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        quai1.get()->draw(Vector3{0.8f, 0.2f, 0.3f});
-        quai2.get()->draw(Vector3{0.1f, 0.8f, 0.3f});
-        voute.get()->draw(Vector3{0.1f, 0.2f, 0.8f});
-        voies.get()->draw(Vector3{0.7f, 0.8f, 0.3f});
+        quai1.get()->draw(Vector3{0.122f, 0.122f, 0.122f});
+        quai2.get()->draw(Vector3{0.122f, 0.122f, 0.122f});
+        voute.get()->draw(Vector3{1.0f, 1.0f, 1.0f});
+        voies.get()->draw(Vector3{0.31f, 0.31f, 0.251f});
     }
 
 
