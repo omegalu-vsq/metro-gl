@@ -2,13 +2,14 @@
 
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
-layout(location=2) in vec3 uv;
+layout(location=2) in vec2 uv;
 
 uniform mat4 model_view_matrix;
 uniform mat4 projection_matrix;
 
 out vec3 position_frag;
 out vec3 normal_frag;
+out vec2 uv_frag;
 
 out vec3 light_color;
 
@@ -17,6 +18,7 @@ void main() {
 
 	position_frag = pos.xyz;
 	normal_frag = mat3(model_view_matrix) * normal;
+	uv_frag = uv;
 
 	gl_Position = projection_matrix * model_view_matrix * vec4(position, 1.0);
 }

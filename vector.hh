@@ -15,6 +15,7 @@ namespace gl {
 
             Vector3() = default;
             Vector3(GLfloat x, GLfloat y, GLfloat z);
+            Vector3(const Vector3&) = default;
             ~Vector3() = default;
 
             friend Vector3 operator+(const Vector3 &lhs, const Vector3 &rhs);

@@ -20,6 +20,7 @@ namespace gl {
 
         public:
         ShaderProgram(const ShaderProgram& obj) = delete;
+
         ShaderProgram(ShaderProgram&& obj);
         ~ShaderProgram();
         

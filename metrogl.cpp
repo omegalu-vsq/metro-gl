@@ -103,7 +103,7 @@ namespace gl {
                        0.0f, -1.0f, 0.0f);
         camera_.frustrum(-0.1f * aspect_, 0.1f * aspect_, -0.1f, 0.1f, 0.1f, 500.0f);
 
-        scene_.init_POV(camera_);
+        scene_.init(camera_);
     }
 
 }

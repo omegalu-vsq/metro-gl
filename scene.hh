@@ -13,8 +13,21 @@
 #include <utility>
 
 namespace gl {
+    class Texture {
+        GLuint id_;
+
+        public:
+        Texture(const std::string& src);
+        Texture(const Texture&) = delete;
+        Texture& operator=(const Texture&) = delete;
+        ~Texture();
+
+        GLuint id() const { return id_; }
+    };
+
     class GLobject {
-        ShaderProgram shaders_;
+        protected:
+        std::shared_ptr<ShaderProgram> shaders_;
         GLuint vao_id_;
         matrix4 transform_;
         GLuint nb_vertices_;
@@ -23,19 +36,34 @@ namespace gl {
         bool state_;
 
         public:
-        GLobject(ShaderProgram&& shaders) : shaders_(std::move(shaders)), transform_(), state_(false) {}
+        GLobject(std::shared_ptr<ShaderProgram> shaders) : shaders_(std::move(shaders)), transform_(), state_(false) {}
+        GLobject(const GLobject&) = delete;
+        GLobject(GLobject&&) = default;
+        virtual ~GLobject() = default;
 
-        void init(Camera camera);
+        void init_default(Camera camera);
+        void init_lights();
 
-        void draw(Vector3 color);
+        virtual void draw(Vector3 color);
 
-        static GLobject make_object(const aiMesh* src, ShaderProgram&& shaders);
+        static GLobject make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders);
+    };
+
+    class GLobjectTex : public GLobject {
+        std::shared_ptr<Texture> texture_;
+
+        public:
+        GLobjectTex(GLobject&& object, std::shared_ptr<Texture> texture)
+            : GLobject(std::move(object)), texture_(std::move(texture)) {}
+
+        void draw(Vector3 color) override;
     };
 
     class Scene {
         public:
 
         std::vector<std::unique_ptr<GLobject>> station_obj;
+        std::vector<std::unique_ptr<GLobjectTex>> station_signals;
         
         GLobject* quai1 = nullptr;
         GLobject* quai2 = nullptr;
@@ -52,7 +80,7 @@ namespace gl {
 
         void import(const std::string&);
 
-        void init_POV(Camera camera);
+        void init(Camera camera);
 
         void draw();
     };
