@@ -20,12 +20,9 @@ namespace gl {
         if (key == 'q') move_right_ = true;
         if (key == 'z') move_forward_ = true;
         if (key == 's') move_backward_ = true;
-        if (key == 'l') {
-            toggle_mouse_lock();
-        }
-        if (key == 'o') {
-            scene_.toggle_doors();
-        }
+        if (key == 'l') toggle_mouse_lock();
+        if (key == 'o') scene_.toggle_doors();
+        if (key == 'r') scene_.run_metro();
     }
 
     void MetroGL::handle_key_up(unsigned char key) {
@@ -98,7 +95,7 @@ namespace gl {
             moved = true;
         }
 
-        if (scene_.update_doors())
+        if (scene_.update_metro())
             redraw = true;
 
         if (moved)
