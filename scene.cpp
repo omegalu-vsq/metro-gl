@@ -15,11 +15,15 @@ namespace gl {
             station_obj.at(i).get()->init_lights();
         }
 
-        for (size_t i = 0; i < station_signals.size(); i++)
+        for (size_t i = 0; i < station_signals.size(); i++) {
             station_signals.at(i).get()->init_default(camera);
+            station_signals.at(i).get()->init_lights();
+        }
 
-        for (size_t i = 0; i < station_plans.size(); i++)
+        for (size_t i = 0; i < station_plans.size(); i++) {
             station_plans.at(i).get()->init_default(camera);
+            station_plans.at(i).get()->init_lights();
+        }
 
         if (metro)
             metro->init(camera);
@@ -172,7 +176,7 @@ namespace gl {
         auto quai_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd"));
         auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
         auto voies_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd"));
-        auto texture_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture.shd"));
+        auto texture_light_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
 
         // texture import 
         auto signal_texture = std::make_shared<Texture>("assets/textures/reaumur.png");
@@ -236,20 +240,20 @@ namespace gl {
                 sous_quai2 = station_obj.back().get();
             }
             else if (name.find("panneau") != std::string::npos) {
-                auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), signal_texture);
+                auto obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), signal_texture);
 
                 station_signals.push_back(std::move(obj));
             }
             else if (name.find("plan") != std::string::npos) {
-                std::unique_ptr<GLobjectTex> obj;
+                std::unique_ptr<GLobjectTexLight> obj;
                 if (name.find("metro") != std::string::npos)
-                    obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), plan_metro_texture);
+                    obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), plan_metro_texture);
                 else if (name.find("idf") != std::string::npos)
-                    obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), plan_idf_texture);
+                    obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), plan_idf_texture);
                 else if (name.find("bus") != std::string::npos)
-                    obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), plan_bus_texture);
+                    obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), plan_bus_texture);
                 else if (name.find("quartier") != std::string::npos)
-                    obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), plan_quartier_texture);
+                    obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), plan_quartier_texture);
               
                 if (obj)
                     station_plans.push_back(std::move(obj));

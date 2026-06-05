@@ -41,8 +41,8 @@ namespace gl {
         public:
 
         std::vector<std::unique_ptr<GLobject>> station_obj;
-        std::vector<std::unique_ptr<GLobjectTex>> station_signals;
-        std::vector<std::unique_ptr<GLobjectTex>> station_plans;
+        std::vector<std::unique_ptr<GLobjectTexLight>> station_signals;
+        std::vector<std::unique_ptr<GLobjectTexLight>> station_plans;
 
         std::unique_ptr<Metro> metro;
         

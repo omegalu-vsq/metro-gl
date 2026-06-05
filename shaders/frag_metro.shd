@@ -10,7 +10,7 @@ layout(location=0) out vec4 output_color;
 uniform int nb_light;
 uniform vec3 lights[LIGHTS];
 
-in vec3 position_frag;
+in vec3 position_view;
 in vec3 normal_frag;
 
 uniform vec3 light_color;
@@ -24,10 +24,10 @@ void main() {
 
     for (int i = 0; i < nb_light; i++) {
         vec3 light_view = (model_view_matrix * vec4(lights[i], 1.0)).xyz;
-        vec3 dirlight = normalize(light_view - position_frag);
+        vec3 dirlight = normalize(light_view - position_view);
         float diffuse = clamp(dot(normal, dirlight), 0.0, 1.0);
 
-        float dist = length(light_view - position_frag);
+        float dist = length(light_view - position_view);
         float attenuation = 1.0 / (1.0 + 0.04 * dist + 0.01 * dist * dist);
 
         lightning += diffuse * attenuation * light_color;

@@ -8,7 +8,8 @@ uniform mat4 model_view_matrix;
 uniform mat4 projection_matrix;
 uniform vec3 model_offset;
 
-out vec3 position_frag;
+out vec3 position_view;
+out vec3 position_world;
 out vec3 normal_frag;
 out vec2 uv_frag;
 
@@ -18,8 +19,11 @@ void main() {
 	vec3 object_position = position + model_offset;
 	vec4 pos = model_view_matrix * vec4(object_position, 1.0);
 
-	position_frag = pos.xyz;
+	position_world = object_position;
+
+	position_view = pos.xyz;
 	normal_frag = mat3(model_view_matrix) * normal;
+	//normal_frag = (model_view_matrix * vec4(normal, 1.0)).xyz;
 	uv_frag = uv;
 
 	gl_Position = projection_matrix * pos;
