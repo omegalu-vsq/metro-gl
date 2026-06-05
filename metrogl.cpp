@@ -6,6 +6,7 @@
 namespace gl {
     void MetroGL::setup() {
         scene_.import("blender/station_vide.glb");
+        scene_.import_metro("blender/mf77body.glb", "blender/mf77doorleft.glb", "blender/mf77doorright.glb");
 
         update_camera();
     }
@@ -21,6 +22,9 @@ namespace gl {
         if (key == 's') move_backward_ = true;
         if (key == 'l') {
             toggle_mouse_lock();
+        }
+        if (key == 'o') {
+            scene_.toggle_doors();
         }
     }
 
@@ -71,6 +75,7 @@ namespace gl {
     bool MetroGL::update_controls() {
         const GLfloat move_step = 0.12f;
         bool moved = false;
+        bool redraw = false;
 
         if (move_left_) {
             camera_x_ -= std::cos(yaw_) * move_step;
@@ -93,8 +98,13 @@ namespace gl {
             moved = true;
         }
 
-        if (moved) update_camera();
-        return moved;
+        if (scene_.update_doors())
+            redraw = true;
+
+        if (moved)
+            update_camera();
+
+        return moved || redraw;
     }
 
     void MetroGL::update_camera() {

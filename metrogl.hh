@@ -9,8 +9,8 @@ namespace gl {
         Camera camera_;
         Scene scene_;
 
-        GLfloat camera_x_ = 14.0f;
-        GLfloat camera_y_ = 3.0f;
+        GLfloat camera_x_ = 10.0f;
+        GLfloat camera_y_ = 2.27f;
         GLfloat camera_z_ = 30.0f;
         GLfloat yaw_ = 0.0f;
         GLfloat aspect_ = 16.0f / 9.0f;

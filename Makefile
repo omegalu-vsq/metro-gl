@@ -59,7 +59,7 @@ build: $(OBJ_FILES)
 	$(CC) $(MAIN_FILE) -o $(DIST) $(OBJ_FILES) $(CXX_FLAGS) $(LDXX_FLAGS)
 
 
-%.o: %.cpp %.hh
+%.o: %.cpp $(HXX_FILES)
 	@$(call color,2)
 	@echo "[$@] $(CXX_FLAGS)"
 	@$(call default_color)
