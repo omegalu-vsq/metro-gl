@@ -1,0 +1,101 @@
+#version 450
+
+#define LIGHTS 20
+
+uniform vec3 color;
+
+layout(location=0) out vec4 output_color;
+
+uniform int nb_light;
+uniform vec3 lights[LIGHTS];
+
+in vec3 position_view;
+in vec3 position_world;
+in vec3 normal_frag;
+in vec2 uv_frag;
+
+uniform vec3 light_color;
+
+uniform mat4 model_view_matrix;
+
+float joint_width = 0.04;
+float joint_height = joint_width * 0.5;
+
+float biseau_width = 0.1;
+float biseau_height = 0.1;
+
+float offset_hor = 0.7;
+float offset_vert = 0.7;
+
+
+void main() {
+    vec3 normal = normalize(normal_frag);
+
+    float largeur = 100.0;
+    float hauteur = largeur;
+
+    float ligne = floor(uv_frag.y * hauteur);
+
+    vec2 tile;
+
+    if (mod(ligne, 2.0) == 0.0)
+        tile = vec2(uv_frag.x * largeur, uv_frag.y * hauteur);
+    else
+        tile = vec2(uv_frag.x * largeur + 0.5, uv_frag.y * hauteur);
+
+    vec2 tile_pos = fract(tile);
+
+    if ((joint_height / 2.0) < tile_pos.y && tile_pos.y < ((joint_height / 2.0) + biseau_height)) {
+        float side_prop = (tile_pos.y - joint_height / 2.0) / biseau_height;
+
+        if (joint_width / 2.0 < tile_pos.x && tile_pos.x < (joint_width / 2.0) + biseau_width - (biseau_width * (1.0 - side_prop)))
+            normal = normalize(normal + vec3(0.0, 0.0, -offset_hor));
+        else if ((1.0 - (joint_width / 2.0)) - biseau_width + (biseau_width * (1.0 - side_prop)) < tile_pos.x && tile_pos.x < 1.0 - joint_width / 2.0)
+            normal = normalize(normal + vec3(0.0, 0.0, offset_hor));
+        else
+            normal = normalize(normal + vec3(0.0, -offset_vert, 0.0));
+    }
+    else if (1.0 - (joint_height / 2.0) - biseau_height < tile_pos.y && tile_pos.y < 1.0 - (joint_height / 2.0)) {
+        float side_prop = (1.0 - joint_height / 2.0 - tile_pos.y) / biseau_height;
+
+        if (joint_width / 2.0 < tile_pos.x && tile_pos.x < (joint_width / 2.0) + biseau_width - (biseau_width * (1.0 - side_prop)))
+            normal = normalize(normal + vec3(0.0, 0.0, -offset_hor));
+        else if ((1.0 - (joint_width / 2.0)) - biseau_width + (biseau_width * (1.0 - side_prop)) < tile_pos.x && tile_pos.x < 1.0 - joint_width / 2.0)
+            normal = normalize(normal + vec3(0.0, 0.0, offset_hor));
+        else
+            normal = normalize(normal + vec3(0.0, -offset_vert, 0.0));
+    }
+    else {
+        if (joint_width / 2.0 < tile_pos.x && tile_pos.x < joint_width / 2.0 + biseau_width)
+            normal = normalize(normal + vec3(0.0, 0.0, -offset_hor));
+        else if (1.0 - (joint_width / 2.0) - biseau_width < tile_pos.x && tile_pos.x < 1.0 - joint_width / 2.0)
+            normal = normalize(normal + vec3(0.0, 0.0, offset_hor));
+    }
+
+    vec3 lightning = vec3(0.15);
+    vec3 specular = vec3(0.0);
+
+    for (int i = 0; i < nb_light; i++) {
+        vec3 light_view = (model_view_matrix * vec4(lights[i], 1.0)).xyz;
+        vec3 dirlight = normalize(light_view - position_view);
+        float diffuse = clamp(dot(normal, dirlight), 0.0, 1.0);
+        vec3 view_dir = normalize(-position_view);
+        vec3 half_dir = normalize(dirlight + view_dir);
+        float spec = pow(clamp(dot(normal, half_dir), 0.0, 1.0), 64.0);
+
+        float dist = length(light_view - position_view);
+        float attenuation = 1.0 / (1.0 + 0.04 * dist + 0.01 * dist * dist);
+
+        lightning += diffuse * attenuation * light_color;
+        specular += spec * attenuation * vec3(0.5);
+    }
+
+    bool u_joint = tile_pos.x < joint_width / 2.0 || 1.0 - joint_width / 2.0 < tile_pos.x;
+    bool v_joint = tile_pos.y < joint_height / 2.0 || 1.0 - joint_height / 2.0 < tile_pos.y;
+
+    vec3 joint_color = vec3(0.78, 0.74, 0.66);
+    vec3 tile_color = vec3(0.92, 0.90, 0.86);
+    vec3 the_color = u_joint || v_joint ? joint_color : tile_color;
+
+    output_color = vec4(min(the_color * color * lightning + specular, vec3(1.0)), 1.0);
+}

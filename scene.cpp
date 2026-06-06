@@ -175,6 +175,7 @@ namespace gl {
         // shaders compilation
         auto quai_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd"));
         auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
+        auto mur_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_mur.shd"));
         auto voies_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd"));
         auto texture_light_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
 
@@ -216,13 +217,13 @@ namespace gl {
                 voute = station_obj.back().get();
             }
             else if (name == "mur.1") {
-                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], voute_shd));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], mur_shd));
 
                 station_obj.push_back(std::move(obj));
                 mur1 = station_obj.back().get();
             }
             else if (name == "mur.2") {
-                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], voute_shd));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], mur_shd));
 
                 station_obj.push_back(std::move(obj));
                 mur2 = station_obj.back().get();
