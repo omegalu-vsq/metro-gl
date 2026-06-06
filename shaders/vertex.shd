@@ -10,7 +10,9 @@ uniform vec3 model_offset;
 
 out vec3 position_frag;
 out vec3 normal_frag;
+out vec3 object_normal_frag;
 out vec2 uv_frag;
+out vec3 object_pos_frag;
 
 out vec3 light_color;
 
@@ -20,7 +22,9 @@ void main() {
 
 	position_frag = pos.xyz;
 	normal_frag = mat3(model_view_matrix) * normal;
+	object_normal_frag = normal;
 	uv_frag = uv;
+	object_pos_frag = object_position;
 
 	gl_Position = projection_matrix * pos;
 }

@@ -48,6 +48,15 @@ namespace gl {
         virtual void draw(Vector3 color);
 
         static GLobject make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders);
+        static GLobject make_strip(std::shared_ptr<ShaderProgram> shaders,
+                                   float x0, float x1, float y, float z0, float z1);
+    };
+
+    class GLobjectPodo : public GLobject {
+        public:
+        GLobjectPodo(GLobject&& object) : GLobject(std::move(object)) {}
+
+        void draw(Vector3 color) override;
     };
 
     class GLobjectTex : public GLobject {
@@ -123,6 +132,8 @@ namespace gl {
         GLobject* voute = nullptr;
         GLobject* mur1 = nullptr;
         GLobject* mur2 = nullptr;
+
+        std::vector<std::unique_ptr<GLobjectPodo>> podotactile_strips;
 
         Scene() = default;
 

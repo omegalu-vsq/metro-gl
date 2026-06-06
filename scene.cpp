@@ -6,6 +6,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/pbrmaterial.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -106,6 +107,11 @@ namespace gl {
         for (size_t i = 0; i < station_plans.size(); i++)
             station_plans.at(i).get()->init_default(camera);
 
+        for (size_t i = 0; i < podotactile_strips.size(); i++) {
+            podotactile_strips.at(i).get()->init_default(camera);
+            podotactile_strips.at(i).get()->init_lights();
+        }
+
         if (metro)
             metro->init(camera);
     }
@@ -199,6 +205,79 @@ namespace gl {
         return object;
     }
 
+    GLobject GLobject::make_strip(std::shared_ptr<ShaderProgram> shaders,
+                                  float x0, float x1, float y, float z0, float z1) {
+        GLobject object{std::move(shaders)};
+
+        std::vector<GLfloat> buffer = {
+            x0, y, z0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+            x1, y, z0, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+            x1, y, z1, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+            x0, y, z1, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        };
+        std::vector<GLuint> indices = {0, 1, 2, 0, 2, 3};
+
+        GLuint vbo_id;
+        GLuint ebo_id;
+        GLint vertex_position = glGetAttribLocation(object.shaders_->getId(), "position");
+        GLint vertex_normal = glGetAttribLocation(object.shaders_->getId(), "normal");
+        GLint vertex_uv = glGetAttribLocation(object.shaders_->getId(), "uv");
+
+        if (vertex_position == -1)
+            return object;
+
+        glGenVertexArrays(1, &(object.vao_id_));
+        glBindVertexArray(object.vao_id_);
+
+        glGenBuffers(1, &vbo_id);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+        glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(GLfloat), buffer.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(vertex_position);
+
+        if (vertex_normal != -1) {
+            glVertexAttribPointer(vertex_normal, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(vertex_normal);
+        }
+
+        if (vertex_uv != -1) {
+            glVertexAttribPointer(vertex_uv, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(vertex_uv);
+        }
+
+        glGenBuffers(1, &ebo_id);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+        glBindVertexArray(0);
+
+        object.state_ = true;
+        object.nb_vertices_ = 4;
+        object.nb_indices_ = indices.size();
+        return object;
+    }
+
+    void GLobjectPodo::draw(Vector3) {
+        if (!state_) return;
+
+        shaders_->use();
+        GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
+        GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");
+        GLint podo_mode = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
+
+        glUniform3f(color_id, 0.97f, 0.97f, 0.96f);
+        glUniform3f(offset_id, 0.0f, 0.0f, 0.0f);
+        if (podo_mode >= 0)
+            glUniform1i(podo_mode, 1);
+
+        glBindVertexArray(vao_id_);
+        glDrawElements(GL_TRIANGLES, nb_indices_, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        if (podo_mode >= 0)
+            glUniform1i(podo_mode, 0);
+    }
+
     void GLobject::draw(Vector3 color) {
         if (!state_) return;
 
@@ -208,6 +287,10 @@ namespace gl {
 
         glUniform3fv(color_id, 1, color.data());
         glUniform3f(offset_id, 0.0f, 0.0f, 0.0f);
+
+        GLint podo_mode = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
+        if (podo_mode >= 0)
+            glUniform1i(podo_mode, 0);
 
         glBindVertexArray(vao_id_);
 
@@ -366,8 +449,12 @@ namespace gl {
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        quai1->draw(Vector3{0.4f, 0.4f, 0.4});
-        quai2->draw(Vector3{0.4f, 0.4f, 0.4f});
+        quai1->draw(Vector3{0.52f, 0.51f, 0.49f});
+        quai2->draw(Vector3{0.52f, 0.51f, 0.49f});
+
+        for (size_t i = 0; i < podotactile_strips.size(); i++)
+            podotactile_strips.at(i).get()->draw({1.0f, 1.0f, 1.0f});
+
         voute->draw(Vector3{1.0f, 1.0f, 1.0f});
         voies->draw(Vector3{0.1f, 0.1f, 0.1f});
         sous_quai1->draw(Vector3{0.1f, 0.1f, 0.1f});
@@ -459,6 +546,11 @@ namespace gl {
                 station_obj.push_back(std::move(obj));
                 sous_quai2 = station_obj.back().get();
             }
+            else if (name.find("podotact") != std::string::npos) {
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], quai_shd));
+
+                station_obj.push_back(std::move(obj));
+            }
             else if (name.find("panneau") != std::string::npos) {
                 auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_shd), signal_texture);
 
@@ -479,6 +571,16 @@ namespace gl {
                     station_plans.push_back(std::move(obj));
             }
         }
+
+        const float strip_width = 0.62f;
+        const float z_min = -36.754f;
+        const float z_max = 42.115f;
+        const float y_top = 0.573f;
+
+        podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
+            GLobject::make_strip(quai_shd, 11.056f - strip_width, 11.056f, y_top, z_min, z_max)));
+        podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
+            GLobject::make_strip(quai_shd, 17.448f, 17.448f + strip_width, y_top, z_min, z_max)));
 
     }
 
