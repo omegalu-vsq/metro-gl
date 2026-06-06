@@ -52,6 +52,8 @@ namespace gl {
         GLobject* sous_quai2 = nullptr;
 
         GLobject* voies = nullptr;
+        std::vector<GLobject*> rails;
+        std::vector<GLobject*> traverses;
 
         GLobject* voute = nullptr;
         GLobject* mur1 = nullptr;
