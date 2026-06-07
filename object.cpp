@@ -196,15 +196,68 @@ namespace gl {
         return object;
     }
 
+    GLobject GLobject::make_strip(std::shared_ptr<ShaderProgram> shaders, float x0, float x1, float y, float z0, float z1) {
+        GLobject object{std::move(shaders)};
+
+        std::vector<GLfloat> buffer = {
+            x0, y, z0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+            x1, y, z0, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+            x1, y, z1, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+            x0, y, z1, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        };
+        std::vector<GLuint> indices = {0, 1, 2, 0, 2, 3};
+
+        GLuint vbo_id;
+        GLuint ebo_id;
+        GLint vertex_position = glGetAttribLocation(object.shaders_->getId(), "position");
+        GLint vertex_normal = glGetAttribLocation(object.shaders_->getId(), "normal");
+        GLint vertex_uv = glGetAttribLocation(object.shaders_->getId(), "uv");
+
+        if (vertex_position == -1) return object;
+
+        glGenVertexArrays(1, &(object.vao_id_));
+        glBindVertexArray(object.vao_id_);
+
+        glGenBuffers(1, &vbo_id);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+        glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(GLfloat), buffer.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(vertex_position);
+
+        if (vertex_normal != -1) {
+            glVertexAttribPointer(vertex_normal, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(vertex_normal);
+        }
+
+        if (vertex_uv != -1) {
+            glVertexAttribPointer(vertex_uv, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(vertex_uv);
+        }
+
+        glGenBuffers(1, &ebo_id);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+        glBindVertexArray(0);
+
+        object.state_ = true;
+        object.nb_vertices_ = 4;
+        object.nb_indices_ = indices.size();
+        return object;
+    }
+
     void GLobject::draw(Vector3 color, Vector3 offset) {
         if (!state_) return;
 
         shaders_->use();
         GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
         GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");
+        GLint podo_mode_id = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
 
         glUniform3fv(color_id, 1, color.data());
         glUniform3fv(offset_id, 1, offset.data());
+        if (podo_mode_id != -1)
+            glUniform1i(podo_mode_id, 0);
 
         glBindVertexArray(vao_id_);
 
@@ -212,6 +265,27 @@ namespace gl {
         //glDrawArrays(GL_TRIANGLES, 0, nb_vertices_);
 
         glBindVertexArray(0);
+    }
+
+    void GLobjectPodo::draw(Vector3 color, Vector3 offset) {
+        if (!state_) return;
+
+        shaders_->use();
+        GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
+        GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");
+        GLint podo_mode_id = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
+
+        glUniform3fv(color_id, 1, color.data());
+        glUniform3fv(offset_id, 1, offset.data());
+        if (podo_mode_id != -1)
+            glUniform1i(podo_mode_id, 1);
+
+        glBindVertexArray(vao_id_);
+        glDrawElements(GL_TRIANGLES, nb_indices_, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        if (podo_mode_id != -1)
+            glUniform1i(podo_mode_id, 0);
     }
 
     void GLobjectTex::draw(Vector3 color, Vector3 offset) {

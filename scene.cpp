@@ -25,6 +25,11 @@ namespace gl {
             station_plans.at(i).get()->init_lights();
         }
 
+        for (size_t i = 0; i < podotactile_strips.size(); i++) {
+            podotactile_strips.at(i).get()->init_default(camera);
+            podotactile_strips.at(i).get()->init_lights();
+        }
+
         if (metro)
             metro->init(camera);
     }
@@ -162,8 +167,12 @@ namespace gl {
 
         init_metro_lights();
 
-        quai1->draw(Vector3{0.4f, 0.4f, 0.4});
-        quai2->draw(Vector3{0.4f, 0.4f, 0.4f});
+        quai1->draw(Vector3{0.52f, 0.51f, 0.49f});
+        quai2->draw(Vector3{0.52f, 0.51f, 0.49f});
+
+        for (size_t i = 0; i < podotactile_strips.size(); i++)
+            podotactile_strips.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f});
+
         voute->draw(Vector3{1.0f, 1.0f, 1.0f});
         voies->draw(Vector3{0.1f, 0.1f, 0.1f});
 
@@ -204,6 +213,9 @@ namespace gl {
 
         for (size_t i = 0; i < station_plans.size(); i++)
             station_plans.at(i).get()->init_metro_lights(train_z, 0.5f);
+
+        for (size_t i = 0; i < podotactile_strips.size(); i++)
+            podotactile_strips.at(i).get()->init_metro_lights(train_z, 1.0f);
 
         metro->init_metro_lights();
     }
@@ -311,6 +323,11 @@ namespace gl {
                 station_obj.push_back(std::move(obj));
                 bouchons.push_back(station_obj.back().get());
             }
+            else if (name.find("podotact") != std::string::npos) {
+                auto obj = std::make_unique<GLobjectPodo>(GLobject::make_object(scene->mMeshes[i], quai_shd));
+
+                podotactile_strips.push_back(std::move(obj));
+            }
             else if (name.find("panneau") != std::string::npos) {
                 auto obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), signal_texture);
 
@@ -330,6 +347,18 @@ namespace gl {
                 if (obj)
                     station_plans.push_back(std::move(obj));
             }
+        }
+
+        const float strip_width = 0.62f;
+        const float z_min = -36.754f;
+        const float z_max = 42.115f;
+        const float y_top = 0.573f;
+
+        if (podotactile_strips.empty()) {
+            podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
+                GLobject::make_strip(quai_shd, 11.056f - strip_width, 11.056f, y_top, z_min, z_max)));
+            podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
+                GLobject::make_strip(quai_shd, 17.448f, 17.448f + strip_width, y_top, z_min, z_max)));
         }
 
     }
