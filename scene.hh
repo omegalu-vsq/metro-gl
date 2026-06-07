@@ -30,11 +30,13 @@ namespace gl {
 
         void import(const std::string& body, const std::string& left_doors, const std::string& right_doors);
         void init(Camera camera);
+        void init_metro_lights();
         void draw();
 
         void toggle_doors();
         void run();
         bool update_metro();
+        GLfloat z_position() const { return z_position_; }
     };
 
     class Scene {
@@ -54,6 +56,8 @@ namespace gl {
         GLobject* voies = nullptr;
         std::vector<GLobject*> rails;
         std::vector<GLobject*> traverses;
+        std::vector<GLobject*> tunnels;
+        std::vector<GLobject*> bouchons;
 
         GLobject* voute = nullptr;
         GLobject* mur1 = nullptr;
@@ -65,6 +69,7 @@ namespace gl {
         void import_metro(const std::string& body, const std::string& left_doors, const std::string& right_doors);
 
         void init(Camera camera);
+        void init_metro_lights();
 
         void toggle_doors();
         void run_metro();

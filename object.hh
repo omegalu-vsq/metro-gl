@@ -44,6 +44,7 @@ namespace gl {
 
         void init_default(Camera camera);
         void init_lights();
+        void init_metro_lights(GLfloat train_z, GLfloat power);
 
         virtual void draw(Vector3 color = Vector3{1.0f, 1.0f, 1.0f}, Vector3 offset = Vector3{0.0f, 0.0f, 0.0f});
 

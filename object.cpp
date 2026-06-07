@@ -90,6 +90,23 @@ namespace gl {
         glUniform3fv(lights_id, nb_lights, lights.data());
     }
 
+    void GLobject::init_metro_lights(GLfloat train_z, GLfloat power) {
+        shaders_->use();
+
+        GLint metro_lights_id = glGetUniformLocation(shaders_->getId(), "metro_lights");
+        GLint metro_light_power_id = glGetUniformLocation(shaders_->getId(), "metro_light_power");
+        if (metro_lights_id == -1) return;
+
+        const GLfloat front_z = 39.7f + train_z;
+        const GLfloat lights[] = {
+            11.78f, 1.375f, front_z,
+            13.08f, 1.375f, front_z
+        };
+
+        glUniform3fv(metro_lights_id, 2, lights);
+        glUniform1f(metro_light_power_id, power);
+    }
+
     void load_mesh(const aiMesh* src, std::vector<GLfloat>& vec) {
         bool has_normals = src->HasNormals();
         bool has_uv = src->HasTextureCoords(0);

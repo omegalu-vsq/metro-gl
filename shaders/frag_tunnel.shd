@@ -1,0 +1,70 @@
+#version 450
+
+#define LIGHTS 20
+
+uniform vec3 color;
+
+layout(location=0) out vec4 output_color;
+
+uniform int nb_light;
+uniform vec3 lights[LIGHTS];
+uniform vec3 metro_lights[2];
+uniform float metro_light_power;
+
+in vec3 position_view;
+in vec3 position_world;
+in vec3 normal_frag;
+in vec2 uv_frag;
+
+uniform vec3 light_color;
+
+uniform mat4 model_view_matrix;
+
+void main() {
+    float tunnel_depth = uv_frag.x;
+
+    vec3 normal = normalize(normal_frag);
+    vec3 station_dir_world = vec3(0.0, 0.0, -sign(position_world.z - 2.9));
+    vec3 station_dir_view = normalize(mat3(model_view_matrix) * station_dir_world);
+    normal = normalize(mix(normal + station_dir_view * 0.8, normal, tunnel_depth));
+
+    vec3 lightning = vec3(0.14);
+
+    for (int i = 0; i < nb_light; i++) {
+        vec3 light_view = (model_view_matrix * vec4(lights[i], 1.0)).xyz;
+        vec3 dirlight = normalize(light_view - position_view);
+        float diffuse = abs(dot(normal, dirlight));
+
+        float dist = length(light_view - position_view);
+        float attenuation = 1.0 / (1.0 + 0.04 * dist + 0.01 * dist * dist);
+
+        lightning += 0.35 * diffuse * attenuation * light_color;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        float light_power = 0.0;
+        float fade_start = metro_lights[i].z;
+        float fade_end = metro_lights[i].z + 1.2;
+
+        if (position_world.z > fade_end)
+            light_power = metro_light_power;
+        else if (position_world.z > fade_start) {
+            float fade = (position_world.z - fade_start) / (fade_end - fade_start);
+            light_power = mix(0.0, metro_light_power, fade);
+        }
+
+        vec3 light_view = (model_view_matrix * vec4(metro_lights[i], 1.0)).xyz;
+        vec3 dirlight = normalize(light_view - position_view);
+        float diffuse = abs(dot(normal, dirlight));
+
+        float dist = length(light_view - position_view);
+        float attenuation = light_power / (1.0 + 0.2 * dist + 0.08 * dist * dist);
+
+        lightning += diffuse * attenuation * vec3(1.0, 0.92, 0.75);
+    }
+
+    vec3 lit_color = color * lightning;
+    float fog = tunnel_depth;
+
+    output_color = vec4(mix(lit_color, vec3(0.003, 0.003, 0.004), fog), 1.0);
+}

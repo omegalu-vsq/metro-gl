@@ -114,6 +114,20 @@ namespace gl {
         }
     }
 
+    void Metro::init_metro_lights() {
+        for (size_t i = 0; i < body_.size(); i++)
+            body_.at(i).get()->init_metro_lights(z_position_, 1.0f);
+
+        for (size_t i = 0; i < textures_.size(); i++)
+            textures_.at(i).get()->init_metro_lights(z_position_, 0.3f);
+
+        for (size_t i = 0; i < left_doors_.size(); i++)
+            left_doors_.at(i).get()->init_metro_lights(z_position_, 0.12f);
+
+        for (size_t i = 0; i < right_doors_.size(); i++)
+            right_doors_.at(i).get()->init_metro_lights(z_position_, 0.12f);
+    }
+
     void Metro::draw() {
         for (size_t i = 0; i < body_.size(); i++)
             if (!body_.at(i).get()->transparent() && !body_.at(i).get()->overlay())
@@ -146,18 +160,27 @@ namespace gl {
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        init_metro_lights();
+
         quai1->draw(Vector3{0.4f, 0.4f, 0.4});
         quai2->draw(Vector3{0.4f, 0.4f, 0.4f});
         voute->draw(Vector3{1.0f, 1.0f, 1.0f});
         voies->draw(Vector3{0.1f, 0.1f, 0.1f});
+
         for (size_t i = 0; i < rails.size(); i++)
-            rails.at(i)->draw(Vector3{0.08f, 0.08f, 0.08f});
+            rails.at(i)->draw(Vector3{1.0f, 1.0f, 1.0f});
         for (size_t i = 0; i < traverses.size(); i++)
             traverses.at(i)->draw(Vector3{0.18f, 0.12f, 0.08f});
+
         sous_quai1->draw(Vector3{0.1f, 0.1f, 0.1f});
         sous_quai2->draw(Vector3{0.1f, 0.1f, 0.1f});
         mur1->draw(Vector3{1.0f, 1.0f, 1.0f});
         mur2->draw(Vector3{1.0f, 1.0f, 1.0f});
+
+        for (size_t i = 0; i < tunnels.size(); i++)
+            tunnels.at(i)->draw(Vector3{0.32f, 0.32f, 0.34f});
+        for (size_t i = 0; i < bouchons.size(); i++)
+            bouchons.at(i)->draw(Vector3{0.04f, 0.04f, 0.045f});
 
         for (size_t i = 0; i < station_signals.size(); i++)
             station_signals.at(i).get()->draw();
@@ -166,6 +189,23 @@ namespace gl {
 
         if (metro)
             metro->draw();
+    }
+
+    void Scene::init_metro_lights() {
+        if (!metro) return;
+
+        GLfloat train_z = metro->z_position();
+
+        for (size_t i = 0; i < station_obj.size(); i++)
+            station_obj.at(i).get()->init_metro_lights(train_z, 1.0f);
+
+        for (size_t i = 0; i < station_signals.size(); i++)
+            station_signals.at(i).get()->init_metro_lights(train_z, 3.0f);
+
+        for (size_t i = 0; i < station_plans.size(); i++)
+            station_plans.at(i).get()->init_metro_lights(train_z, 0.5f);
+
+        metro->init_metro_lights();
     }
 
 
@@ -181,6 +221,8 @@ namespace gl {
         auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
         auto mur_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_mur.shd"));
         auto voies_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd"));
+        auto rail_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_rail.shd"));
+        auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_tunnel.shd"));
         auto texture_light_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
         auto plan_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_plan.shd"));
 
@@ -246,7 +288,7 @@ namespace gl {
                 sous_quai2 = station_obj.back().get();
             }
             else if (name.find("rail") != std::string::npos) {
-                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], voies_shd));
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], rail_shd));
 
                 station_obj.push_back(std::move(obj));
                 rails.push_back(station_obj.back().get());
@@ -256,6 +298,18 @@ namespace gl {
 
                 station_obj.push_back(std::move(obj));
                 traverses.push_back(station_obj.back().get());
+            }
+            else if (name.find("tunnel") != std::string::npos) {
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], tunnel_shd));
+
+                station_obj.push_back(std::move(obj));
+                tunnels.push_back(station_obj.back().get());
+            }
+            else if (name.find("bouchon") != std::string::npos) {
+                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], tunnel_shd));
+
+                station_obj.push_back(std::move(obj));
+                bouchons.push_back(station_obj.back().get());
             }
             else if (name.find("panneau") != std::string::npos) {
                 auto obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), signal_texture);
