@@ -1,0 +1,71 @@
+#version 450
+
+layout(location=0) in vec3 position;
+layout(location=1) in vec3 normal;
+layout(location=2) in vec2 uv;
+
+uniform mat4 model_view_matrix;
+uniform mat4 projection_matrix;
+uniform vec3 model_offset;
+
+out vec3 position_view;
+out vec3 position_world;
+out vec3 normal_frag;
+out vec3 object_normal_frag;
+out vec2 uv_frag;
+out vec3 object_pos_frag;
+
+out vec3 light_color;
+
+float relief_height = 0.2;
+float relief_scale = 10.0;
+float normal_strength = 0.6;
+
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+
+	float a = hash(i);
+	float b = hash(i + vec2(1.0, 0.0));
+	float c = hash(i + vec2(0.0, 1.0));
+	float d = hash(i + vec2(1.0, 1.0));
+
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float ballast_height(vec2 p) {
+	float relief = noise(p * relief_scale);
+	relief += 0.5 * noise(p * relief_scale * 2.7);
+	relief = relief / 1.5;
+
+	return (relief - 0.5) * relief_height;
+}
+
+void main() {
+	vec3 object_position = position + model_offset;
+
+	float relief = ballast_height(object_position.xz);
+	object_position.y += relief;
+
+	float eps = 0.08;
+	float dx = (ballast_height(object_position.xz + vec2(eps, 0.0)) - relief) / eps;
+	float dz = (ballast_height(object_position.xz + vec2(0.0, eps)) - relief) / eps;
+	vec3 ballast_normal = normalize(vec3(-dx * normal_strength, 1.0, -dz * normal_strength));
+
+	vec4 pos = model_view_matrix * vec4(object_position, 1.0);
+
+	position_world = object_position;
+
+	position_view = pos.xyz;
+	normal_frag = mat3(model_view_matrix) * ballast_normal;
+	object_normal_frag = ballast_normal;
+	uv_frag = uv;
+	object_pos_frag = object_position;
+
+	gl_Position = projection_matrix * pos;
+}

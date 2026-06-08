@@ -63,6 +63,7 @@ namespace gl {
         GLobject* mur1 = nullptr;
         GLobject* mur2 = nullptr;
 
+        std::vector<std::unique_ptr<GLobject>> white_edge_strips;
         std::vector<std::unique_ptr<GLobjectPodo>> podotactile_strips;
 
         Scene() = default;

@@ -70,7 +70,7 @@ void main() {
         vec3 metro_light_color = vec3(1.0, 0.92, 0.75);
 
         lightning += 0.3 * diffuse * attenuation * metro_light_color;
-        specular += 1.35 * spec * attenuation * metro_light_color;
+        specular += 5.0 * spec * attenuation * metro_light_color;
     }
 
     output_color = vec4(min(color * lightning + specular, vec3(1.0)), 1.0);

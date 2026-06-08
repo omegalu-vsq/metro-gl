@@ -25,6 +25,11 @@ namespace gl {
             station_plans.at(i).get()->init_lights();
         }
 
+        for (size_t i = 0; i < white_edge_strips.size(); i++) {
+            white_edge_strips.at(i).get()->init_default(camera);
+            white_edge_strips.at(i).get()->init_lights();
+        }
+
         for (size_t i = 0; i < podotactile_strips.size(); i++) {
             podotactile_strips.at(i).get()->init_default(camera);
             podotactile_strips.at(i).get()->init_lights();
@@ -170,16 +175,19 @@ namespace gl {
         quai1->draw(Vector3{0.52f, 0.51f, 0.49f});
         quai2->draw(Vector3{0.52f, 0.51f, 0.49f});
 
+        for (size_t i = 0; i < white_edge_strips.size(); i++)
+            white_edge_strips.at(i).get()->draw(Vector3{0.99f, 0.98f, 0.95f});
+
         for (size_t i = 0; i < podotactile_strips.size(); i++)
             podotactile_strips.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f});
 
         voute->draw(Vector3{1.0f, 1.0f, 1.0f});
-        voies->draw(Vector3{0.1f, 0.1f, 0.1f});
+        voies->draw(Vector3{1.0f, 1.0f, 1.0f});
 
         for (size_t i = 0; i < rails.size(); i++)
             rails.at(i)->draw(Vector3{1.0f, 1.0f, 1.0f});
         for (size_t i = 0; i < traverses.size(); i++)
-            traverses.at(i)->draw(Vector3{0.18f, 0.12f, 0.08f});
+            traverses.at(i)->draw(Vector3{0.21f, 0.21f, 0.21f});
 
         sous_quai1->draw(Vector3{0.1f, 0.1f, 0.1f});
         sous_quai2->draw(Vector3{0.1f, 0.1f, 0.1f});
@@ -214,6 +222,9 @@ namespace gl {
         for (size_t i = 0; i < station_plans.size(); i++)
             station_plans.at(i).get()->init_metro_lights(train_z, 0.5f);
 
+        for (size_t i = 0; i < white_edge_strips.size(); i++)
+            white_edge_strips.at(i).get()->init_metro_lights(train_z, 1.0f);
+
         for (size_t i = 0; i < podotactile_strips.size(); i++)
             podotactile_strips.at(i).get()->init_metro_lights(train_z, 1.0f);
 
@@ -233,6 +244,7 @@ namespace gl {
         auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
         auto mur_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_mur.shd"));
         auto voies_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voies.shd"));
+        auto ballast_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex_ballast.shd", "shaders/frag_ballast.shd"));
         auto rail_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_rail.shd"));
         auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_tunnel.shd"));
         auto texture_light_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
@@ -244,6 +256,7 @@ namespace gl {
         auto plan_idf_texture = std::make_shared<Texture>("assets/textures/plan-idf.png", true, true);
         auto plan_bus_texture = std::make_shared<Texture>("assets/textures/plan-bus.png", true, true);
         auto plan_quartier_texture = std::make_shared<Texture>("assets/textures/plan-quartier.png", true, true);
+        auto ballast_texture = std::make_shared<Texture>("assets/textures/ballast.jpg");
 
         std::cout << "Meshes: " << scene->mNumMeshes << std::endl;
 
@@ -264,7 +277,7 @@ namespace gl {
                 quai2 = station_obj.back().get();
             }
             else if (name == "voies") {
-                auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], voies_shd));
+                auto obj = std::make_unique<GLobjectTexLight>(GLobject::make_object(scene->mMeshes[i], ballast_shd), ballast_texture);
 
                 station_obj.push_back(std::move(obj));
                 voies = station_obj.back().get();
@@ -350,15 +363,21 @@ namespace gl {
         }
 
         const float strip_width = 0.62f;
+        const float white_width = strip_width;
         const float z_min = -36.754f;
         const float z_max = 42.115f;
         const float y_top = 0.573f;
 
+        white_edge_strips.push_back(std::make_unique<GLobject>(
+            GLobject::make_strip(quai_shd, 11.056f - white_width, 11.056f, y_top + 0.001f, z_min, z_max)));
+        white_edge_strips.push_back(std::make_unique<GLobject>(
+            GLobject::make_strip(quai_shd, 17.448f, 17.448f + white_width, y_top + 0.001f, z_min, z_max)));
+
         if (podotactile_strips.empty()) {
             podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
-                GLobject::make_strip(quai_shd, 11.056f - strip_width, 11.056f, y_top, z_min, z_max)));
+                GLobject::make_strip(quai_shd, 11.056f - white_width - strip_width, 11.056f - white_width, y_top + 0.002f, z_min, z_max)));
             podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
-                GLobject::make_strip(quai_shd, 17.448f, 17.448f + strip_width, y_top, z_min, z_max)));
+                GLobject::make_strip(quai_shd, 17.448f + white_width, 17.448f + white_width + strip_width, y_top + 0.002f, z_min, z_max)));
         }
 
     }

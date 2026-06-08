@@ -74,7 +74,7 @@ vec3 podotactile_normal(vec3 base_normal, vec3 opos) {
 
 vec3 podotactile_albedo(vec3 opos, out float roughness) {
     float stud = podotactile_stud(opos);
-    vec3 albedo = mix(vec3(0.97, 0.97, 0.96), vec3(0.84, 0.84, 0.83), stud * 0.35);
+    vec3 albedo = mix(vec3(0.91, 0.91, 0.89), vec3(0.78, 0.78, 0.76), stud * 0.35);
     roughness = mix(0.40, 0.26, stud);
     return albedo;
 }
