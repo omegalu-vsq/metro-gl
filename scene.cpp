@@ -544,7 +544,7 @@ namespace gl {
         for (size_t i = 0; i < tunnels.size(); i++)
             tunnels.at(i)->draw(Vector3{0.32f, 0.32f, 0.34f});
         for (size_t i = 0; i < bouchons.size(); i++)
-            bouchons.at(i)->draw(Vector3{0.04f, 0.04f, 0.045f});
+            bouchons.at(i)->draw(Vector3{0.0f, 0.0f, 0.0f});
 
         for (size_t i = 0; i < station_signals.size(); i++)
             station_signals.at(i).get()->draw();
