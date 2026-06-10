@@ -93,9 +93,4 @@ namespace gl {
         return arr;
     } 
 
-    /*
-    // VECTOR 4
-    Vector4::Vector4(GLfloat x, GLfloat y, GLfloat z) : x_(x), y_(y), z_(z), w_(w)
-    {}
-    */
 }

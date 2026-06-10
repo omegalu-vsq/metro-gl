@@ -25,7 +25,7 @@ namespace gl {
         unsigned char* buffer = stbi_load(src.c_str(), &width, &height, &channels, 0);
         stbi_set_flip_vertically_on_load(false);
         if (!buffer) {
-            std::cerr << "Texture load failure: " << src << std::endl;
+            std::cerr << "/!\\ Texture load failure: " << src << std::endl;
             return;
         }
 

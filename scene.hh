@@ -11,7 +11,7 @@
 namespace gl {
     class Metro {
         std::vector<std::unique_ptr<GLobjectMetro>> body_;
-        std::vector<std::unique_ptr<GLobjectTexLight>> textures_;
+        std::vector<std::unique_ptr<GLobjectTex>> textures_;
         std::vector<std::unique_ptr<GLobjectMetro>> left_doors_;
         std::vector<std::unique_ptr<GLobjectMetro>> right_doors_;
 
@@ -43,8 +43,8 @@ namespace gl {
         public:
 
         std::vector<std::unique_ptr<GLobject>> station_obj;
-        std::vector<std::unique_ptr<GLobjectTexLight>> station_signals;
-        std::vector<std::unique_ptr<GLobjectTexLight>> station_plans;
+        std::vector<std::unique_ptr<GLobjectTex>> station_signals;
+        std::vector<std::unique_ptr<GLobjectTex>> station_plans;
 
         std::unique_ptr<Metro> metro;
         
@@ -56,6 +56,8 @@ namespace gl {
         GLobject* voies = nullptr;
         std::vector<GLobject*> rails;
         std::vector<GLobject*> traverses;
+        std::vector<GLobject*> tiges;
+
         std::vector<GLobject*> tunnels;
         std::vector<GLobject*> bouchons;
 

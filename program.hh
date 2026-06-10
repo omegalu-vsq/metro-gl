@@ -33,11 +33,7 @@ namespace gl {
         
         void use();
 
-        //void init_object();
-
         void init_POV(Camera camera);
-
-        void display();
 
     };
 }

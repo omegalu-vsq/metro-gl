@@ -185,28 +185,6 @@ namespace gl {
         glUseProgram(this->id_);
     }
 
-
-    /*
-    void ShaderProgram::init_object() {
-        GLuint vbo_id;
-        GLint vertex_position = glGetAttribLocation(this->id_, "position");
-
-        if (vertex_position == -1) return; 
-
-        glGenVertexArrays(1, &vao_id_);
-        glBindVertexArray(vao_id_);
-
-        glGenBuffers(1, &vbo_id);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-        glBufferData(GL_ARRAY_BUFFER, cube_buffer.size() * sizeof(GLfloat), cube_buffer.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-        glEnableVertexAttribArray(vertex_position);
-
-        glBindVertexArray(0);
-    }
-    */
-
     void ShaderProgram::init_POV(Camera camera) {
         GLint proj_id, model_id;
 
@@ -216,23 +194,5 @@ namespace gl {
         glUniformMatrix4fv(model_id, 1, GL_TRUE, camera.model_view.data());
         glUniformMatrix4fv(proj_id, 1, GL_TRUE, camera.projection.data());
     }
-
-    void ShaderProgram::display() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
-
-        GLint color_id = glGetUniformLocation(this->id_, "color");
-
-        Vector3 color{0.8f, 0.3f, 0.1f};
-        
-        glUniform3fv(color_id, 1, color.data());
-
-        //glBindVertexArray(this->vao_id_);
-
-        glDrawArrays(GL_TRIANGLES, 0, cube_buffer.size() / 3);
-
-        glBindVertexArray(0);
-    }
-
 
 }

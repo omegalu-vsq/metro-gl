@@ -17,9 +17,7 @@ namespace gl {
         GLfloat get(int im, int j) const;
 
         void insert_line(Vector3& vec, int j);
-
         void insert_mat3(std::vector<Vector3>& mat);
-
         void insert_mat4(std::vector<std::vector<GLfloat>>& mat);
 
         void translation(GLfloat x, GLfloat y, GLfloat z);

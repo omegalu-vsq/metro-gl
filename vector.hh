@@ -38,25 +38,4 @@ namespace gl {
             friend std::ostream& operator<<(std::ostream &out,Vector3 &vect);
     };
 
-    /*
-    class Vector4 {
-        public:
-            GLfloat x_;
-            GLfloat y_;
-            GLfloat z_;
-            GLfloat w_;
-
-            Vector4(GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-            ~Vector4();
-
-            friend Vector4 operator+(const Vector4 &lhs, const Vector4 &rhs);
-            friend Vector4 operator-(const Vector4 &lhs, const Vector4 &rhs);
-            friend Vector4 operator*(const Vector4 &lhs, const Vector4 &rhs);
-            friend Vector4 operator*(const Vector4 &lhs, GLfloat scalar);
-            friend Vector4 operator*(GLfloat scalar, const Vector4 &rhs);
-            friend Vector4 operator^(const Vector4 &lhs, const Vector4 &rhs);
-
-            friend std::ostream& operator<<(std::ostream &out,Vector4 &vect);
-    };
-    */
 }

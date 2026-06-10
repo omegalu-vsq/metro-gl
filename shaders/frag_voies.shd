@@ -3,6 +3,7 @@
 #define LIGHTS 20
 
 uniform vec3 color;
+uniform sampler2D signal_texture;
 
 layout(location=0) out vec4 output_color;
 
@@ -63,7 +64,10 @@ void main() {
         lightning += diffuse * attenuation * vec3(1.0, 0.92, 0.75);
     }
 
-    vec3 lit_color = color * lightning;
+    vec2 ballast_uv = vec2(position_world.x * 0.7, position_world.z * 0.35);
+    vec3 surface_color = color * texture(signal_texture, ballast_uv).rgb;
+
+    vec3 lit_color = surface_color * lightning;
     float fog = tunnel_depth;
 
     output_color = vec4(mix(lit_color, vec3(0.003, 0.003, 0.004), fog), 1.0);

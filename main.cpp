@@ -5,7 +5,6 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-//static gl::ShaderProgram* prog;
 static gl::MetroGL app;
 
 void display_master() {
@@ -89,20 +88,6 @@ int main(int argc, char* argv[]) {
     app.setup();
 
     glutMainLoop();
-
-    //prog->use();
-    //prog->init_vao();
-    //prog->init_object();
-    //prog->init_POV();
-
-    /*
-    if (prog->is_ready()) {
-        prog->display();
-        glutMainLoop();
-    }
-    else
-        std::cout << "Ca marche pas lol";
-    */
 
     return 0;
 }
