@@ -128,12 +128,12 @@ namespace gl {
         for (size_t i = 0; i < textures_.size(); i++)
             textures_.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f}, Vector3{0.0f, 0.0f, z_position_});
 
+        draw_doors(left_doors_, left_offset);
+        draw_doors(right_doors_, right_offset);
+
         for (size_t i = 0; i < body_.size(); i++)
             if (body_.at(i).get()->transparent())
                 body_.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f}, Vector3{0.0f, 0.0f, z_position_});
-
-        draw_doors(left_doors_, left_offset);
-        draw_doors(right_doors_, right_offset);
     }
 
     void Metro::import(const std::string& body, const std::string& left_doors, const std::string& right_doors) {
@@ -190,9 +190,7 @@ namespace gl {
 
         const aiScene* scene = importer.ReadFile(src, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices);
 
-        if (!scene) { std::cout << "/!\\ Metro::import_doors() failed: " << importer.GetErrorString() << std::endl;
-            return;
-        }
+        if (!scene) { std::cout << "/!\\ Metro::import_doors() failed: " << importer.GetErrorString() << std::endl; return; }
 
         auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro.shd"));
 
@@ -227,6 +225,14 @@ namespace gl {
         if (z_position_ == -100.0f) z_position_target_ = 0.0f;
         else if (z_position_ == 0.0f) z_position_target_ = 100.0f;
         else z_position_target_ = -100.0f;
+    }
+
+    void Metro::reset_entry() {
+        door_opening_ = 0.0f;
+        target_door_opening_ = 0.0f;
+        z_position_ = -100.0f;
+        z_position_start_ = -100.0f;
+        z_position_target_ = -100.0f;
     }
 
     bool Metro::update_metro() {
@@ -290,8 +296,11 @@ namespace gl {
         auto plan_idf_texture = std::make_shared<Texture>("assets/textures/plan-idf.png", true, true);
         auto plan_bus_texture = std::make_shared<Texture>("assets/textures/plan-bus.png", true, true);
         auto plan_quartier_texture = std::make_shared<Texture>("assets/textures/plan-quartier.png", true, true);
-        auto panam_texture = std::make_shared<Texture>("assets/textures/panam.png", true, true);
         auto ballast_texture = std::make_shared<Texture>("assets/textures/ballast.jpg");
+        std::vector<std::shared_ptr<Texture>> panam_textures = {
+            std::make_shared<Texture>("assets/textures/panam1.png", true, true),
+            std::make_shared<Texture>("assets/textures/panam2.png", true, true)
+        };
         std::vector<std::shared_ptr<Texture>> pub_textures = {
             std::make_shared<Texture>("assets/textures/pub1.png", true, true),
             std::make_shared<Texture>("assets/textures/pub2.png", true, true),
@@ -425,12 +434,15 @@ namespace gl {
                 }
             }
             else if (name.find("panam.") != std::string::npos) {
-                auto obj = std::make_unique<GLobjectTex>(
-                    GLobject::make_object(scene->mMeshes[i], plan_shd),
-                    panam_texture
-                );
+                char panam_id = name.back();
+                if ('1' <= panam_id && panam_id <= '2') {
+                    auto obj = std::make_unique<GLobjectTex>(
+                        GLobject::make_object(scene->mMeshes[i], plan_shd),
+                        panam_textures.at(panam_id - '1')
+                    );
 
-                station_plans.push_back(std::move(obj));
+                    station_plans.push_back(std::move(obj));
+                }
             }
         }
 
@@ -563,6 +575,11 @@ namespace gl {
     void Scene::run_metro() {
         if (metro)
             metro->run();
+    }
+
+    void Scene::reset_metro_entry() {
+        if (metro)
+            metro->reset_entry();
     }
 
     bool Scene::update_metro() {

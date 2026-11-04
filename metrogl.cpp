@@ -1,5 +1,6 @@
 #include "metrogl.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <GL/freeglut.h>
 
@@ -23,6 +24,17 @@ namespace gl {
         if (key == 'l') toggle_mouse_lock();
         if (key == 'o') scene_.toggle_doors();
         if (key == 'r') scene_.run_metro();
+        if (key == 'e' || key == 'E') {
+            scene_.reset_metro_entry();
+            glutPostRedisplay();
+        }
+        if (key == '+' || key == '=') move_up_ = true;
+        if (key == '-') move_down_ = true;
+        if (key == 'c' || key == 'C') {
+            camera_y_ = default_camera_y_;
+            update_camera();
+            glutPostRedisplay();
+        }
     }
 
     void MetroGL::handle_key_up(unsigned char key) {
@@ -30,19 +42,23 @@ namespace gl {
         if (key == 'q') move_right_ = false;
         if (key == 'z') move_forward_ = false;
         if (key == 's') move_backward_ = false;
+        if (key == '+' || key == '=') move_up_ = false;
+        if (key == '-') move_down_ = false;
     }
 
-    void MetroGL::handle_mouse_motion(int x, int) {
+    void MetroGL::handle_mouse_motion(int x, int y) {
         const GLfloat mouse_sensitivity = 0.003f;
+        const GLfloat max_pitch = 1.45f;
 
         if (!mouse_locked_) return;
 
         int center_x = window_width_ / 2;
         int center_y = window_height_ / 2;
 
-        if (x == center_x) return;
+        if (x == center_x && y == center_y) return;
 
         yaw_ -= (x - center_x) * mouse_sensitivity;
+        pitch_ = std::max(-max_pitch, std::min(max_pitch, pitch_ - (y - center_y) * mouse_sensitivity));
         glutWarpPointer(center_x, center_y);
         update_camera();
     }
@@ -94,6 +110,14 @@ namespace gl {
             camera_z_ += std::cos(yaw_) * move_step;
             moved = true;
         }
+        if (move_up_) {
+            camera_y_ += move_step;
+            moved = true;
+        }
+        if (move_down_) {
+            camera_y_ -= move_step;
+            moved = true;
+        }
 
         if (scene_.update_metro())
             redraw = true;
@@ -105,10 +129,14 @@ namespace gl {
     }
 
     void MetroGL::update_camera() {
+        GLfloat pitch_cos = std::cos(pitch_);
+
         camera_.lookat(camera_x_, camera_y_, camera_z_,
-                       camera_x_ + std::sin(yaw_), camera_y_, camera_z_ - std::cos(yaw_),
+                       camera_x_ + std::sin(yaw_) * pitch_cos,
+                       camera_y_ + std::sin(pitch_),
+                       camera_z_ - std::cos(yaw_) * pitch_cos,
                        0.0f, -1.0f, 0.0f);
-        camera_.frustrum(-0.1f * aspect_, 0.1f * aspect_, -0.1f, 0.1f, 0.1f, 500.0f);
+        camera_.frustrum(-0.07f * aspect_, 0.07f * aspect_, -0.07f, 0.07f, 0.1f, 500.0f);
 
         scene_.init(camera_);
     }

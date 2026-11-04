@@ -304,6 +304,9 @@ namespace gl {
     void GLobjectMetro::draw(Vector3, Vector3 offset) {
         if (!state_) return;
 
+        if (transparent())
+            glDepthMask(GL_FALSE);
+
         shaders_->use();
         GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
         GLint alpha_id = glGetUniformLocation(shaders_->getId(), "alpha");
@@ -316,5 +319,8 @@ namespace gl {
         glBindVertexArray(vao_id_);
         glDrawElements(GL_TRIANGLES, nb_indices_, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
+        if (transparent())
+            glDepthMask(GL_TRUE);
     }
 }

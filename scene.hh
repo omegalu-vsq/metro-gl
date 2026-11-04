@@ -35,6 +35,7 @@ namespace gl {
 
         void toggle_doors();
         void run();
+        void reset_entry();
         bool update_metro();
         GLfloat z_position() const { return z_position_; }
     };
@@ -78,6 +79,7 @@ namespace gl {
 
         void toggle_doors();
         void run_metro();
+        void reset_metro_entry();
         bool update_metro();
 
         void draw();

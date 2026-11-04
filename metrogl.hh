@@ -13,7 +13,9 @@ namespace gl {
         GLfloat camera_y_ = 2.27f;
         GLfloat camera_z_ = 30.0f;
 
+        static constexpr GLfloat default_camera_y_ = 2.27f;
         GLfloat yaw_ = 0.0f;
+        GLfloat pitch_ = 0.0f;
         GLfloat aspect_ = 16.0f / 9.0f;
 
         int last_mouse_x_ = 0;
@@ -23,6 +25,8 @@ namespace gl {
         bool move_backward_ = false;
         bool move_left_ = false;
         bool move_right_ = false;
+        bool move_up_ = false;
+        bool move_down_ = false;
 
         int window_width_ = 1920;
         int window_height_ = 1080;
