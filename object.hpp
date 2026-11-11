@@ -1,7 +1,7 @@
 #pragma once
 
-#include "program.hh"
-#include "vector.hh"
+#include "program.hpp"
+#include "vector.hpp"
 
 #include <GL/glew.h>
 
@@ -13,11 +13,14 @@
 #include <vector>
 
 namespace gl {
+    class GLlight;
+
     class Texture {
         GLuint id_;
 
         public:
         Texture(const std::string& src, bool flip_y = false, bool flip_x = false);
+        Texture(const float* src);
         Texture(const Texture&) = delete;
         Texture& operator=(const Texture&) = delete;
         ~Texture();
@@ -33,6 +36,10 @@ namespace gl {
         GLuint nb_indices_;
 
         bool state_;
+        GLfloat roughness_ = 0.4f;
+        GLfloat metallic_ = 0.0f;
+
+        void init_material();
 
         public:
         GLobject(std::shared_ptr<ShaderProgram> shaders) : shaders_(std::move(shaders)), vao_id_(0), nb_vertices_(0), nb_indices_(0), state_(false) {}
@@ -41,13 +48,17 @@ namespace gl {
         virtual ~GLobject() = default;
 
         void init_default(Camera camera);
-        void init_lights();
+        void init_lights(const std::vector<GLfloat>& lights);
+        void init_lights(const std::vector<std::unique_ptr<GLlight>>& lights);
         void init_metro_lights(GLfloat train_z, GLfloat power);
+        void set_roughness(GLfloat roughness) { roughness_ = roughness; }
+        void set_metallic(GLfloat metallic) { metallic_ = metallic; }
 
         virtual void draw(Vector3 color = Vector3{1.0f, 1.0f, 1.0f}, Vector3 offset = Vector3{0.0f, 0.0f, 0.0f});
 
         static GLobject make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders);
         static GLobject make_strip(std::shared_ptr<ShaderProgram> shaders, float x0, float x1, float y, float z0, float z1);
+        static GLobject make_cylinder(std::shared_ptr<ShaderProgram> shaders, float radius, float length);
     };
 
     class GLobjectPodo : public GLobject {

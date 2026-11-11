@@ -1,6 +1,8 @@
-#include "object.hh"
+#include "light.hpp"
+#include "object.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -46,6 +48,16 @@ namespace gl {
         stbi_image_free(buffer);
     }
 
+    Texture::Texture(const float* src) {
+        glGenTextures(1, &id_);
+        glBindTexture(GL_TEXTURE_2D, id_);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 64, 64, 0, GL_RGBA, GL_FLOAT, src);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
     Texture::~Texture() {
         if (id_) glDeleteTextures(1, &id_);
     }
@@ -55,11 +67,10 @@ namespace gl {
         shaders_->init_POV(camera);
     }
 
-    void GLobject::init_lights() {
+    void GLobject::init_lights(const std::vector<GLfloat>& lights) {
         shaders_->use();
-        GLuint nb_lights = 16;
+        GLuint nb_lights = lights.size() / 3;
         GLint lights_id, nb_lights_id, light_color_id;
-        std::vector<GLfloat> lights;
 
         lights_id = glGetUniformLocation(shaders_->getId(), "lights");
         nb_lights_id = glGetUniformLocation(shaders_->getId(), "nb_light");
@@ -71,23 +82,17 @@ namespace gl {
         Vector3 color{light_intensity, light_intensity, light_intensity};
         glUniform3fv(light_color_id, 1, color.data());
 
-        for (size_t i = 0; i < nb_lights / 2; i++) {
-            GLfloat z = -41.7f + i * (83.8f / (nb_lights / 2)) + (83.f / (nb_lights));
-
-            lights.push_back(19.0f);
-            lights.push_back(4.0f);
-            lights.push_back(z);
-        }
-
-        for (size_t i = 0; i < nb_lights / 2; i++) {
-            GLfloat z = -41.7f + i * (83.8f / (nb_lights / 2)) + (83.f / (nb_lights));
-
-            lights.push_back(9.0f);
-            lights.push_back(4.0f);
-            lights.push_back(z);
-        }
-
         glUniform3fv(lights_id, nb_lights, lights.data());
+    }
+
+    void GLobject::init_lights(const std::vector<std::unique_ptr<GLlight>>& lights) {
+        shaders_->use();
+
+        GLint nb_lights_id = glGetUniformLocation(shaders_->getId(), "nb_tubelights");
+        glUniform1i(nb_lights_id, lights.size());
+
+        for (size_t i = 0; i < lights.size(); i++)
+            lights[i].get()->init_uniform(shaders_->getId(), i); 
     }
 
     void GLobject::init_metro_lights(GLfloat train_z, GLfloat power) {
@@ -246,10 +251,65 @@ namespace gl {
         return object;
     }
 
+    GLobject GLobject::make_cylinder(std::shared_ptr<ShaderProgram> shaders, float radius, float length) {
+        const unsigned int segments = 24;
+        const float pi = 3.14159265f;
+        const unsigned int bottom = 4 * segments;
+        const unsigned int top = bottom + 1;
+
+        aiMesh mesh;
+        mesh.mPrimitiveTypes = aiPrimitiveType_TRIANGLE;
+        mesh.mNumVertices = 4 * segments + 2;
+        mesh.mNumFaces = 4 * segments;
+        mesh.mVertices = new aiVector3D[mesh.mNumVertices];
+        mesh.mNormals = new aiVector3D[mesh.mNumVertices];
+        mesh.mFaces = new aiFace[mesh.mNumFaces];
+
+        mesh.mVertices[bottom] = aiVector3D(0.0f, 0.0f, -length / 2.0f);
+        mesh.mVertices[top] = aiVector3D(0.0f, 0.0f, length / 2.0f);
+        mesh.mNormals[bottom] = aiVector3D(0.0f, 0.0f, -1.0f);
+        mesh.mNormals[top] = aiVector3D(0.0f, 0.0f, 1.0f);
+
+        for (unsigned int i = 0; i < segments; i++) {
+            float angle = 2.0f * pi * i / segments;
+            aiVector3D normal(std::cos(angle), std::sin(angle), 0.0f);
+            mesh.mVertices[i] = aiVector3D(radius * normal.x, radius * normal.y, -length / 2.0f);
+            mesh.mVertices[i + segments] = aiVector3D(radius * normal.x, radius * normal.y, length / 2.0f);
+            mesh.mNormals[i] = mesh.mNormals[i + segments] = normal;
+
+            mesh.mVertices[i + 2 * segments] = mesh.mVertices[i];
+            mesh.mVertices[i + 3 * segments] = mesh.mVertices[i + segments];
+            mesh.mNormals[i + 2 * segments] = mesh.mNormals[bottom];
+            mesh.mNormals[i + 3 * segments] = mesh.mNormals[top];
+
+            unsigned int next = (i + 1) % segments;
+            unsigned int triangles[4][3] = {
+                {i, next, i + segments},
+                {next, next + segments, i + segments},
+                {bottom, next + 2 * segments, i + 2 * segments},
+                {top, i + 3 * segments, next + 3 * segments}
+            };
+
+            for (unsigned int j = 0; j < 4; j++) {
+                aiFace& face = mesh.mFaces[4 * i + j];
+                face.mNumIndices = 3;
+                face.mIndices = new unsigned int[3]{triangles[j][0], triangles[j][1], triangles[j][2]};
+            }
+        }
+
+        return make_object(&mesh, std::move(shaders));
+    }
+
+    void GLobject::init_material() {
+        glUniform1f(glGetUniformLocation(shaders_->getId(), "roughness"), roughness_);
+        glUniform1f(glGetUniformLocation(shaders_->getId(), "metallic"), metallic_);
+    }
+
     void GLobject::draw(Vector3 color, Vector3 offset) {
         if (!state_) return;
 
         shaders_->use();
+        init_material();
         GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
         GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");
         GLint podo_mode_id = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
@@ -271,6 +331,7 @@ namespace gl {
         if (!state_) return;
 
         shaders_->use();
+        init_material();
         GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
         GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");
         GLint podo_mode_id = glGetUniformLocation(shaders_->getId(), "podotactile_mode");
@@ -295,9 +356,6 @@ namespace gl {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_->id());
 
-        GLuint texture_id = glGetUniformLocation(shaders_->getId(), "signal_texture");
-        glUniform1i(texture_id, 0);
-
         GLobject::draw(color, offset);
     }
 
@@ -308,6 +366,7 @@ namespace gl {
             glDepthMask(GL_FALSE);
 
         shaders_->use();
+        init_material();
         GLint color_id = glGetUniformLocation(shaders_->getId(), "color");
         GLint alpha_id = glGetUniformLocation(shaders_->getId(), "alpha");
         GLint offset_id = glGetUniformLocation(shaders_->getId(), "model_offset");

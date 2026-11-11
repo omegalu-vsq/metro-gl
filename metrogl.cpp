@@ -1,4 +1,4 @@
-#include "metrogl.hh"
+#include "metrogl.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -8,8 +8,9 @@ namespace gl {
     void MetroGL::setup() {
         scene_.import("blender/station_vide.glb");
         scene_.import_metro("blender/mf77body.glb", "blender/mf77doorleft.glb", "blender/mf77doorright.glb");
+        scene_.import_ltc();
 
-        update_camera();
+        update_camera(true);
     }
 
     void MetroGL::display() {
@@ -128,9 +129,10 @@ namespace gl {
         return moved || redraw;
     }
 
-    void MetroGL::update_camera() {
+    void MetroGL::update_camera(bool update_lights) {
         GLfloat pitch_cos = std::cos(pitch_);
 
+        camera_.setPos(camera_x_, camera_y_, camera_z_);
         camera_.lookat(camera_x_, camera_y_, camera_z_,
                        camera_x_ + std::sin(yaw_) * pitch_cos,
                        camera_y_ + std::sin(pitch_),
@@ -138,7 +140,7 @@ namespace gl {
                        0.0f, -1.0f, 0.0f);
         camera_.frustrum(-0.07f * aspect_, 0.07f * aspect_, -0.07f, 0.07f, 0.1f, 500.0f);
 
-        scene_.init(camera_);
+        scene_.init(camera_, update_lights);
     }
 
 }

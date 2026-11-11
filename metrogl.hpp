@@ -1,7 +1,7 @@
 #pragma once
 
-#include "camera.hh"
-#include "scene.hh"
+#include "camera.hpp"
+#include "scene.hpp"
 
 namespace gl {
     class MetroGL {
@@ -31,7 +31,7 @@ namespace gl {
         int window_width_ = 1920;
         int window_height_ = 1080;
 
-        void update_camera();
+        void update_camera(bool update_lights = false);
         void toggle_mouse_lock();
 
         public:

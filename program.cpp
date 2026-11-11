@@ -1,5 +1,5 @@
-#include "program.hh"
-#include "vector.hh"
+#include "program.hpp"
+#include "vector.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -175,6 +175,11 @@ namespace gl {
             return program;
         } 
 
+        glUseProgram(id);
+        glUniform1i(glGetUniformLocation(id, "signal_texture"), 0);
+        glUniform1i(glGetUniformLocation(id, "LTC1"), 8);
+        glUniform1i(glGetUniformLocation(id, "LTC2"), 9);
+
         program.vertex_id_ = vertex_id;
         program.fragment_id_ = fragment_id;
         program.state_ = true;
@@ -186,12 +191,14 @@ namespace gl {
     }
 
     void ShaderProgram::init_POV(Camera camera) {
-        GLint proj_id, model_id;
+        GLint pos_id, proj_id, view_id;
 
-        model_id = glGetUniformLocation(this->id_, "model_view_matrix");
+        pos_id = glGetUniformLocation(this->id_, "camera_ws");
+        view_id = glGetUniformLocation(this->id_, "view_matrix");
         proj_id = glGetUniformLocation(this->id_, "projection_matrix");
 
-        glUniformMatrix4fv(model_id, 1, GL_TRUE, camera.model_view.data());
+        glUniform3fv(pos_id, 1, camera.pos.data());
+        glUniformMatrix4fv(view_id, 1, GL_TRUE, camera.view.data());
         glUniformMatrix4fv(proj_id, 1, GL_TRUE, camera.projection.data());
     }
 

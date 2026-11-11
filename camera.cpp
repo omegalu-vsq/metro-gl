@@ -1,4 +1,4 @@
-#include "camera.hh"
+#include "camera.hpp"
 
 #include <vector>
 
@@ -10,7 +10,7 @@ namespace gl {
                 GLfloat cx, GLfloat cy, GLfloat cz,
                 GLfloat ux, GLfloat uy, GLfloat uz) {
 
-        model_view = matrix4{};
+        view = matrix4{};
 
         Vector3 front = {cx - ex, cy - ey, cz - ez};
         front.normalize();
@@ -31,9 +31,9 @@ namespace gl {
         view_rotation.push_back(u);
         view_rotation.push_back(front);
 
-        model_view.insert_mat3(view_rotation);
+        view.insert_mat3(view_rotation);
 
-        model_view.translation(-ex, -ey, -ez);
+        view.translation(-ex, -ey, -ez);
     }
 
     void Camera::frustrum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,

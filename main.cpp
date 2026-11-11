@@ -1,6 +1,6 @@
-#include "camera.hh"
-#include "program.hh"
-#include "metrogl.hh"
+#include "camera.hpp"
+#include "program.hpp"
+#include "metrogl.hpp"
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>

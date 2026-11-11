@@ -1,8 +1,8 @@
-#include "matrix.hh"
+#include "matrix.hpp"
 
 #include <vector>
 
-#include "vector.hh"
+#include "vector.hpp"
 
 namespace gl {
     matrix4::matrix4() {

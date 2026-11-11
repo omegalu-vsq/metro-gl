@@ -1,6 +1,7 @@
 #pragma once
 
-#include "object.hh"
+#include "light.hpp"
+#include "object.hpp"
 
 #include <GL/glew.h>
 
@@ -29,7 +30,7 @@ namespace gl {
         Metro() = default;
 
         void import(const std::string& body, const std::string& left_doors, const std::string& right_doors);
-        void init(Camera camera);
+        void init(Camera camera, const std::vector<std::unique_ptr<GLlight>>& lights, bool update_lights);
         void init_metro_lights();
         void draw();
 
@@ -47,8 +48,10 @@ namespace gl {
         std::vector<std::unique_ptr<GLobjectTex>> station_signals;
         std::vector<std::unique_ptr<GLobjectTex>> station_plans;
 
+        std::vector<std::unique_ptr<GLlight>> station_lights;
+
         std::unique_ptr<Metro> metro;
-        
+
         GLobject* quai1 = nullptr;
         GLobject* quai2 = nullptr;
         GLobject* sous_quai1 = nullptr;
@@ -69,12 +72,16 @@ namespace gl {
         std::vector<std::unique_ptr<GLobject>> white_edge_strips;
         std::vector<std::unique_ptr<GLobjectPodo>> podotactile_strips;
 
+        std::unique_ptr<Texture> ltc1;
+        std::unique_ptr<Texture> ltc2;
+
         Scene() = default;
 
         void import(const std::string&);
         void import_metro(const std::string& body, const std::string& left_doors, const std::string& right_doors);
+        void import_ltc();
 
-        void init(Camera camera);
+        void init(Camera camera, bool update_lights = true);
         void init_metro_lights();
 
         void toggle_doors();

@@ -1,4 +1,6 @@
-#include "scene.hh"
+#include "scene.hpp"
+
+#include "LTC.h"
 
 #include <algorithm>
 #include <cmath>
@@ -72,25 +74,29 @@ namespace gl {
         return std::max(0.0f, std::min(1.0f, value));
     }
 
-    void Metro::init(Camera camera) {
+    void Metro::init(Camera camera, const std::vector<std::unique_ptr<GLlight>>& lights, bool update_lights) {
         for (size_t i = 0; i < body_.size(); i++) {
             body_.at(i).get()->init_default(camera);
-            body_.at(i).get()->init_lights();
+            if (update_lights)
+                body_.at(i).get()->init_lights(lights);
         }
 
         for (size_t i = 0; i < textures_.size(); i++) {
             textures_.at(i).get()->init_default(camera);
-            textures_.at(i).get()->init_lights();
+            if (update_lights)
+                textures_.at(i).get()->init_lights(lights);
         }
 
         for (size_t i = 0; i < left_doors_.size(); i++) {
             left_doors_.at(i).get()->init_default(camera);
-            left_doors_.at(i).get()->init_lights();
+            if (update_lights)
+                left_doors_.at(i).get()->init_lights(lights);
         }
 
         for (size_t i = 0; i < right_doors_.size(); i++) {
             right_doors_.at(i).get()->init_default(camera);
-            right_doors_.at(i).get()->init_lights();
+            if (update_lights)
+                right_doors_.at(i).get()->init_lights(lights);
         }
     }
 
@@ -147,13 +153,10 @@ namespace gl {
 
         const aiScene* scene = importer.ReadFile(src, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices);
 
-        if (!scene) {
-            std::cout << "/!\\ Metro::import() failed: " << importer.GetErrorString() << std::endl;
-            return;
-        }
+        if (!scene) { std::cout << "/!\\ Metro::import() failed: " << importer.GetErrorString() << std::endl; return; }
 
         auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro.shd"));
-        auto metro_texture_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
+        auto metro_texture_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro_texture.shd"));
         auto ratp_texture = std::make_shared<Texture>("assets/textures/ratp.jpg", false, true);
 
         std::cout << "Metro meshes: " << scene->mNumMeshes << std::endl;
@@ -174,11 +177,13 @@ namespace gl {
 
             if (material_has_texture(scene, scene->mMeshes[i])) {
                 auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], metro_texture_shd), ratp_texture);
+                obj->set_roughness(0.05f);
 
                 textures_.push_back(std::move(obj));
             }
             else {
                 auto obj = std::make_unique<GLobjectMetro>(GLobject::make_object(scene->mMeshes[i], metro_shd), color, alpha, door, overlay);
+                obj->set_roughness(0.05f);
 
                 body_.push_back(std::move(obj));
             }
@@ -207,6 +212,7 @@ namespace gl {
                 true,
                 is_metro_overlay(color)
             );
+            obj->set_roughness(0.05f);
 
             if (left)
                 left_doors_.push_back(std::move(obj));
@@ -276,10 +282,7 @@ namespace gl {
 
         const aiScene* scene = importer.ReadFile(src, aiProcess_Triangulate);
 
-        if (!scene) {
-            std::cout << "/!\\ Scene::import() failed: " << importer.GetErrorString() << std::endl;
-            return;
-        }
+        if (!scene) { std::cout << "/!\\ Scene::import() failed: " << importer.GetErrorString() << std::endl; return; }
 
         auto quai_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd"));
         auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
@@ -288,7 +291,7 @@ namespace gl {
         auto color_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_color.shd"));
         auto rail_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_rail.shd"));
         auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_tunnel.shd"));
-        auto texture_light_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_texture_light.shd"));
+        auto emaille_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_emaille.shd"));
         auto plan_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_plan.shd"));
 
         auto signal_texture = std::make_shared<Texture>("assets/textures/reaumur.png");
@@ -330,24 +333,28 @@ namespace gl {
             }
             else if (name == "voies") {
                 auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], ballast_shd), ballast_texture);
+                obj->set_roughness(0.9f);
 
                 station_obj.push_back(std::move(obj));
                 voies = station_obj.back().get();
             }
             else if (name == "voute") {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], voute_shd));
+                obj->set_roughness(0.25f);
 
                 station_obj.push_back(std::move(obj));
                 voute = station_obj.back().get();
             }
             else if (name == "mur.1") {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], mur_shd));
+                obj->set_roughness(0.25f);
 
                 station_obj.push_back(std::move(obj));
                 mur1 = station_obj.back().get();
             }
             else if (name == "mur.2") {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], mur_shd));
+                obj->set_roughness(0.25f);
 
                 station_obj.push_back(std::move(obj));
                 mur2 = station_obj.back().get();
@@ -366,12 +373,15 @@ namespace gl {
             }
             else if (name.find("rail") != std::string::npos) {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], rail_shd));
+                obj->set_roughness(0.2f);
+                obj->set_metallic(1.0f);
 
                 station_obj.push_back(std::move(obj));
                 rails.push_back(station_obj.back().get());
             }
             else if (name.find("traverse") != std::string::npos) {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], quai_shd));
+                obj->set_roughness(0.9f);
 
                 station_obj.push_back(std::move(obj));
                 traverses.push_back(station_obj.back().get());
@@ -384,6 +394,7 @@ namespace gl {
             }
             else if (name.find("tunnel") != std::string::npos) {
                 auto obj = std::make_unique<GLobject>(GLobject::make_object(scene->mMeshes[i], tunnel_shd));
+                obj->set_roughness(0.85f);
 
                 station_obj.push_back(std::move(obj));
                 tunnels.push_back(station_obj.back().get());
@@ -400,7 +411,8 @@ namespace gl {
                 podotactile_strips.push_back(std::move(obj));
             }
             else if (name.find("panneau") != std::string::npos) {
-                auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], texture_light_shd), signal_texture);
+                auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], emaille_shd), signal_texture);
+                obj->set_roughness(0.025f);
 
                 station_signals.push_back(std::move(obj));
             }
@@ -415,8 +427,10 @@ namespace gl {
                 else if (name.find("quartier") != std::string::npos)
                     obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], plan_shd), plan_quartier_texture);
 
-                if (obj)
+                if (obj) {
+                    obj->set_roughness(0.8f);
                     station_plans.push_back(std::move(obj));
+                }
             }
             else if (name.find("pub.") != std::string::npos) {
                 char pub_id = name.back();
@@ -429,6 +443,7 @@ namespace gl {
                         GLobject::make_object(scene->mMeshes[i], plan_shd),
                         pub_textures.at(texture_id)
                     );
+                    obj->set_roughness(0.8f);
 
                     station_plans.push_back(std::move(obj));
                 }
@@ -437,13 +452,30 @@ namespace gl {
                 char panam_id = name.back();
                 if ('1' <= panam_id && panam_id <= '2') {
                     auto obj = std::make_unique<GLobjectTex>(
-                        GLobject::make_object(scene->mMeshes[i], plan_shd),
+                        GLobject::make_object(scene->mMeshes[i], emaille_shd),
                         panam_textures.at(panam_id - '1')
                     );
+                    obj->set_roughness(0.025f);
 
                     station_plans.push_back(std::move(obj));
                 }
             }
+        }
+
+        // light tube fabrication
+        const float tube_intensity = 200.0f;
+        for (size_t i = 0; i < 8; i++) {
+            GLfloat z = -38.7f + i * (83.8f / 8) + (83.f / 16);
+            auto tube = GLlightTube::make_light_tube(Vector3{1.0f, 1.0f, 0.72f}, Vector3{19.0f, 4.5f, z}, tube_intensity, 0.08f, 2.0f, color_shd);
+            station_lights.push_back(std::make_unique<GLlightTube>(tube.first));
+            station_obj.push_back(std::move(tube.second));
+        }
+
+        for (size_t i = 0; i < 8; i++) {
+            GLfloat z = -38.7f + i * (83.8f / 8) + (83.f / 16);
+            auto tube = GLlightTube::make_light_tube(Vector3{1.0f, 1.0f, 0.72f}, Vector3{9.0f, 4.5f, z}, tube_intensity, 0.08f, 2.0f, color_shd);
+            station_lights.push_back(std::make_unique<GLlightTube>(tube.first));
+            station_obj.push_back(std::move(tube.second));
         }
 
         const float strip_width = 0.62f;
@@ -454,8 +486,10 @@ namespace gl {
 
         white_edge_strips.push_back(std::make_unique<GLobject>(
             GLobject::make_strip(quai_shd, 11.056f - white_width, 11.056f, y_top + 0.001f, z_min, z_max)));
+        white_edge_strips.back()->set_roughness(0.9f);
         white_edge_strips.push_back(std::make_unique<GLobject>(
             GLobject::make_strip(quai_shd, 17.448f, 17.448f + white_width, y_top + 0.001f, z_min, z_max)));
+        white_edge_strips.back()->set_roughness(0.9f);
 
         if (podotactile_strips.empty()) {
             podotactile_strips.push_back(std::make_unique<GLobjectPodo>(
@@ -470,34 +504,49 @@ namespace gl {
         metro->import(body, left_doors, right_doors);
     }
 
-    void Scene::init(Camera camera) {
+    void Scene::import_ltc() {
+        this->ltc1 = std::make_unique<Texture>(LTC1);
+        this->ltc2 = std::make_unique<Texture>(LTC2);
+
+        glActiveTexture(GL_TEXTURE8);
+        glBindTexture(GL_TEXTURE_2D, ltc1.get()->id());
+        glActiveTexture(GL_TEXTURE9);
+        glBindTexture(GL_TEXTURE_2D, ltc2.get()->id());
+    }
+
+    void Scene::init(Camera camera, bool update_lights) {
         for (size_t i = 0; i < station_obj.size(); i++) {
             station_obj.at(i).get()->init_default(camera);
-            station_obj.at(i).get()->init_lights();
+            if (update_lights)
+                station_obj.at(i).get()->init_lights(station_lights);
         }
 
         for (size_t i = 0; i < station_signals.size(); i++) {
             station_signals.at(i).get()->init_default(camera);
-            station_signals.at(i).get()->init_lights();
+            if (update_lights)
+                station_signals.at(i).get()->init_lights(station_lights);
         }
 
         for (size_t i = 0; i < station_plans.size(); i++) {
             station_plans.at(i).get()->init_default(camera);
-            station_plans.at(i).get()->init_lights();
+            if (update_lights)
+                station_plans.at(i).get()->init_lights(station_lights);
         }
 
         for (size_t i = 0; i < white_edge_strips.size(); i++) {
             white_edge_strips.at(i).get()->init_default(camera);
-            white_edge_strips.at(i).get()->init_lights();
+            if (update_lights)
+                white_edge_strips.at(i).get()->init_lights(station_lights);
         }
 
         for (size_t i = 0; i < podotactile_strips.size(); i++) {
             podotactile_strips.at(i).get()->init_default(camera);
-            podotactile_strips.at(i).get()->init_lights();
+            if (update_lights)
+                podotactile_strips.at(i).get()->init_lights(station_lights);
         }
 
         if (metro)
-            metro->init(camera);
+            metro->init(camera, station_lights, update_lights);
     }
 
     void Scene::init_metro_lights() {
@@ -529,8 +578,8 @@ namespace gl {
 
         init_metro_lights();
 
-        quai1->draw(Vector3{0.52f, 0.51f, 0.49f});
-        quai2->draw(Vector3{0.52f, 0.51f, 0.49f});
+        quai1->draw(Vector3{0.06f, 0.05f, 0.05f});
+        quai2->draw(Vector3{0.06f, 0.05f, 0.05f});
 
         for (size_t i = 0; i < white_edge_strips.size(); i++)
             white_edge_strips.at(i).get()->draw(Vector3{0.99f, 0.98f, 0.95f});
@@ -544,7 +593,7 @@ namespace gl {
         for (size_t i = 0; i < rails.size(); i++)
             rails.at(i)->draw(Vector3{1.0f, 1.0f, 1.0f});
         for (size_t i = 0; i < traverses.size(); i++)
-            traverses.at(i)->draw(Vector3{0.21f, 0.21f, 0.21f});
+            traverses.at(i)->draw(Vector3{0.04f, 0.04f, 0.04f});
         for (size_t i = 0; i < tiges.size(); i++)
             tiges.at(i)->draw(Vector3{0.45f, 0.45f, 0.45f});
 
@@ -562,6 +611,9 @@ namespace gl {
             station_signals.at(i).get()->draw();
         for (size_t i = 0; i < station_plans.size(); i++)
             station_plans.at(i).get()->draw();
+
+        for (size_t i = 0; i < station_lights.size(); i++)
+            station_lights.at(i).get()->draw();
 
         if (metro)
             metro->draw();

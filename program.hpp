@@ -1,6 +1,6 @@
 #pragma once
 
-#include "camera.hh"
+#include "camera.hpp"
 
 #include <string>
 #include <vector>
