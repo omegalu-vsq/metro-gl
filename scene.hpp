@@ -33,6 +33,7 @@ namespace gl {
         void init(Camera camera, const std::vector<std::unique_ptr<GLlight>>& lights, bool update_lights);
         void init_metro_lights();
         void draw();
+        void draw_depth(ShaderProgram& shader);
 
         void toggle_doors();
         void run();
@@ -42,6 +43,11 @@ namespace gl {
     };
 
     class Scene {
+        std::unique_ptr<ShadowController> shadow_controller_;
+        std::vector<std::shared_ptr<ShaderProgram>> shadow_receivers_;
+        bool shadow_enabled_ = true;
+        bool shadow_dirty_ = true;
+
         public:
 
         std::vector<std::unique_ptr<GLobject>> station_obj;
@@ -80,6 +86,8 @@ namespace gl {
         void import(const std::string&);
         void import_metro(const std::string& body, const std::string& left_doors, const std::string& right_doors);
         void import_ltc();
+        void import_shadow_controller();
+        void toggle_shadow_controller();
 
         void init(Camera camera, bool update_lights = true);
         void init_metro_lights();

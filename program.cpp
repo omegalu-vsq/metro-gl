@@ -50,10 +50,11 @@ namespace gl {
     };
 
     ShaderProgram::ShaderProgram(ShaderProgram&& obj) : id_(obj.id_), vertex_id_(obj.vertex_id_),
-                                                        fragment_id_(obj.fragment_id_), state_(obj.state_) {
+                                                        fragment_id_(obj.fragment_id_), geometry_id_(obj.geometry_id_), state_(obj.state_) {
         obj.id_ = 0;
         obj.vertex_id_ = 0;
         obj.fragment_id_ = 0;
+        obj.geometry_id_ = 0;
         obj.state_ = false;
     }
 
@@ -64,6 +65,12 @@ namespace gl {
         glDetachShader(id_, fragment_id_);
         glDeleteShader(vertex_id_);
         glDeleteShader(fragment_id_);
+
+        if (geometry_id_) {
+            glDetachShader(id_, geometry_id_);
+            glDeleteShader(geometry_id_);
+        }
+
         glDeleteProgram(id_);
     }
 
@@ -132,7 +139,7 @@ namespace gl {
     }
 
 
-    ShaderProgram ShaderProgram::make_program(const std::string& vertex_src, const std::string& fragment_src) {
+    ShaderProgram ShaderProgram::make_program(const std::string& vertex_src, const std::string& fragment_src, const std::string& geometry_src) {
         GLuint vertex_id = compile_shader(vertex_src, GL_VERTEX_SHADER); 
         if (!vertex_id) {
         
@@ -156,6 +163,14 @@ namespace gl {
         
         glAttachShader(id, vertex_id);
         glAttachShader(id, fragment_id);
+
+        GLuint geometry_id = 0;
+
+        if (!geometry_src.empty()) {
+            geometry_id = compile_shader(geometry_src, GL_GEOMETRY_SHADER);
+            glAttachShader(id, geometry_id);
+        }
+
         glLinkProgram(id);
 
         int link_status = 0;
@@ -170,6 +185,10 @@ namespace gl {
             glDetachShader(id, fragment_id);
             glDeleteShader(vertex_id);
             glDeleteShader(fragment_id);
+            if (geometry_id) {
+                glDetachShader(id, geometry_id);
+                glDeleteShader(geometry_id);
+            }
             glDeleteProgram(id);
 
             return program;
@@ -179,9 +198,11 @@ namespace gl {
         glUniform1i(glGetUniformLocation(id, "signal_texture"), 0);
         glUniform1i(glGetUniformLocation(id, "LTC1"), 8);
         glUniform1i(glGetUniformLocation(id, "LTC2"), 9);
+        glUniform1i(glGetUniformLocation(id, "shadow_map"), 10);
 
         program.vertex_id_ = vertex_id;
         program.fragment_id_ = fragment_id;
+        program.geometry_id_ = geometry_id;
         program.state_ = true;
         return program;
     }

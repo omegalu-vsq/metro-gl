@@ -55,6 +55,7 @@ namespace gl {
         void set_metallic(GLfloat metallic) { metallic_ = metallic; }
 
         virtual void draw(Vector3 color = Vector3{1.0f, 1.0f, 1.0f}, Vector3 offset = Vector3{0.0f, 0.0f, 0.0f});
+        void draw_depth(ShaderProgram& shader, Vector3 offset = Vector3{0.0f, 0.0f, 0.0f});
 
         static GLobject make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders);
         static GLobject make_strip(std::shared_ptr<ShaderProgram> shaders, float x0, float x1, float y, float z0, float z1);

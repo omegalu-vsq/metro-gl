@@ -142,6 +142,29 @@ namespace gl {
                 body_.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f}, Vector3{0.0f, 0.0f, z_position_});
     }
 
+    void Metro::draw_depth(ShaderProgram& shader) {
+        Vector3 offset{0.0f, 0.0f, z_position_};
+
+        for (size_t i = 0; i < body_.size(); i++)
+            if (!body_.at(i)->transparent())
+                body_.at(i)->draw_depth(shader, offset);
+
+        for (size_t i = 0; i < textures_.size(); i++)
+            textures_.at(i)->draw_depth(shader, offset);
+
+        GLfloat deport_offset = -0.08f * clamp01(door_opening_ / 0.25f);
+        GLfloat slide_offset = 0.8f * clamp01((door_opening_ - 0.25f) / 0.75f);
+
+        Vector3 left_offset{deport_offset, 0.0f, -slide_offset + z_position_};
+        Vector3 right_offset{deport_offset, 0.0f, slide_offset + z_position_};
+
+        for (size_t i = 0; i < left_doors_.size(); i++)
+            if (!left_doors_.at(i)->transparent()) left_doors_.at(i)->draw_depth(shader, left_offset);
+
+        for (size_t i = 0; i < right_doors_.size(); i++)
+            if (!right_doors_.at(i)->transparent()) right_doors_.at(i)->draw_depth(shader, right_offset);
+    }
+
     void Metro::import(const std::string& body, const std::string& left_doors, const std::string& right_doors) {
         import_body(body);
         import_doors(left_doors, true);
@@ -293,6 +316,8 @@ namespace gl {
         auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_tunnel.shd"));
         auto emaille_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_emaille.shd"));
         auto plan_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_plan.shd"));
+
+        shadow_receivers_ = {quai_shd, voute_shd};
 
         auto signal_texture = std::make_shared<Texture>("assets/textures/reaumur.png");
         auto plan_metro_texture = std::make_shared<Texture>("assets/textures/plan-metro.png", true, true);
@@ -463,7 +488,7 @@ namespace gl {
         }
 
         // light tube fabrication
-        const float tube_intensity = 200.0f;
+        const float tube_intensity = 100.0f;
         for (size_t i = 0; i < 8; i++) {
             GLfloat z = -38.7f + i * (83.8f / 8) + (83.f / 16);
             auto tube = GLlightTube::make_light_tube(Vector3{1.0f, 1.0f, 0.72f}, Vector3{19.0f, 4.5f, z}, tube_intensity, 0.08f, 2.0f, color_shd);
@@ -512,6 +537,38 @@ namespace gl {
         glBindTexture(GL_TEXTURE_2D, ltc1.get()->id());
         glActiveTexture(GL_TEXTURE9);
         glBindTexture(GL_TEXTURE_2D, ltc2.get()->id());
+    }
+
+    void Scene::import_shadow_controller() {
+        if (station_lights.empty() || shadow_receivers_.empty()) return;
+
+        std::vector<Vector3> positions;
+
+        for (size_t i = 0; i < station_lights.size(); i++)
+            positions.push_back(station_lights[i]->position());
+
+        shadow_controller_ = std::make_unique<ShadowController>(positions);
+
+        if (!shadow_controller_->ready()) {
+            shadow_controller_.reset();
+            return;
+        }
+
+        for (size_t i = 0; i < shadow_receivers_.size(); i++)
+            shadow_controller_->apply(*shadow_receivers_[i], shadow_enabled_);
+
+        shadow_dirty_ = true;
+    }
+
+    void Scene::toggle_shadow_controller() {
+        if (!shadow_controller_) return;
+
+        shadow_enabled_ = !shadow_enabled_;
+
+        for (size_t i = 0; i < shadow_receivers_.size(); i++)
+            shadow_controller_->apply(*shadow_receivers_[i], shadow_enabled_);
+
+        shadow_dirty_ = true;
     }
 
     void Scene::init(Camera camera, bool update_lights) {
@@ -573,6 +630,19 @@ namespace gl {
     }
 
     void Scene::draw() {
+        if (shadow_controller_ && shadow_enabled_ && shadow_dirty_) {
+            shadow_controller_->begin();
+
+            for (size_t light = 0; light < shadow_controller_->light_count(); light++) {
+                shadow_controller_->select_light(light);
+
+                if (metro) metro->draw_depth(shadow_controller_->shader());
+            }
+
+            shadow_controller_->end();
+            shadow_dirty_ = false;
+        }
+
         glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -632,10 +702,15 @@ namespace gl {
     void Scene::reset_metro_entry() {
         if (metro)
             metro->reset_entry();
+        shadow_dirty_ = true;
     }
 
     bool Scene::update_metro() {
-        return metro && metro->update_metro();
+        bool moved = metro && metro->update_metro();
+
+        if (moved) shadow_dirty_ = true;
+
+        return moved;
     }
 
 }

@@ -300,6 +300,18 @@ namespace gl {
         return make_object(&mesh, std::move(shaders));
     }
 
+    void GLobject::draw_depth(ShaderProgram& shader, Vector3 offset) {
+        if (!state_) return;
+
+        shader.use();
+
+        glUniform3fv(glGetUniformLocation(shader.getId(), "model_offset"), 1, offset.data());
+
+        glBindVertexArray(vao_id_);
+        glDrawElements(GL_TRIANGLES, nb_indices_, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
     void GLobject::init_material() {
         glUniform1f(glGetUniformLocation(shaders_->getId(), "roughness"), roughness_);
         glUniform1f(glGetUniformLocation(shaders_->getId(), "metallic"), metallic_);

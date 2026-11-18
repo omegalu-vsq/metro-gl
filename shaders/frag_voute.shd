@@ -3,6 +3,9 @@
 #define LIGHTS 20
 
 uniform vec3 color;
+uniform samplerCubeArray shadow_map;
+uniform int shadow_count = 0;
+uniform float shadow_far_plane;
 
 layout(location=0) out vec4 output_color;
 
@@ -88,6 +91,15 @@ float I_ltc_line(vec3 p1, vec3 p2) {
 
     float w = 1.0 / max(length(width_matrix * ortho), 0.0001);
     return w * I_diffuse_line(Minv * p1, Minv * p2);
+}
+
+float shadow_visibility(int light) {
+    vec3 light_position = (tubelights[light].points[0] + tubelights[light].points[1]) * 0.5;
+    vec3 direction = position_ws - light_position;
+    float distance_fragment = length(direction);
+    if (distance_fragment >= shadow_far_plane || distance_fragment == 0.0) return 1.0;
+    float distance_obstacle = texture(shadow_map, vec4(direction, float(light))).r * shadow_far_plane;
+    return distance_fragment <= distance_obstacle + 0.02 ? 1.0 : 0.0;
 }
 
 void main() {
@@ -179,7 +191,8 @@ void main() {
         float diffuse = clamp(tubelights[i].radius * I_diffuse_line(p1, p2), 0.0, 1.0);
         float spec = NdotV > 0.0 ? clamp(tubelights[i].radius * I_ltc_line(p1, p2), 0.0, 1.0) : 0.0;
 
-        final_color += (kd * albedo * diffuse + F * spec) * tubelights[i].color * tubelights[i].intensity;
+        float visibility = i < shadow_count ? shadow_visibility(i) : 1.0;
+        final_color += (kd * albedo * diffuse + F * spec) * tubelights[i].color * tubelights[i].intensity * visibility;
     }
 
     // HEADLIGHTS

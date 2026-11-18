@@ -13,10 +13,11 @@ namespace gl {
         GLuint id_;
         GLuint vertex_id_;
         GLuint fragment_id_;
+        GLuint geometry_id_;
 
         bool state_;
 
-        ShaderProgram(GLuint id) : id_(id), vertex_id_(0), fragment_id_(0), state_(false) {}
+        ShaderProgram(GLuint id) : id_(id), vertex_id_(0), fragment_id_(0), geometry_id_(0), state_(false) {}
 
         public:
         ShaderProgram(const ShaderProgram& obj) = delete;
@@ -24,7 +25,7 @@ namespace gl {
         ShaderProgram(ShaderProgram&& obj);
         ~ShaderProgram();
         
-        static ShaderProgram make_program(const std::string& vertex_src, const std::string& framgent_src);
+        static ShaderProgram make_program(const std::string& vertex_src, const std::string& fragment_src, const std::string& geometry_src = "");
 
         GLuint getId() { return id_; }
 

@@ -9,6 +9,7 @@ namespace gl {
         scene_.import("blender/station_vide.glb");
         scene_.import_metro("blender/mf77body.glb", "blender/mf77doorleft.glb", "blender/mf77doorright.glb");
         scene_.import_ltc();
+        scene_.import_shadow_controller();
 
         update_camera(true);
     }
@@ -25,6 +26,10 @@ namespace gl {
         if (key == 'l') toggle_mouse_lock();
         if (key == 'o') scene_.toggle_doors();
         if (key == 'r') scene_.run_metro();
+        if (key == 'h' || key == 'H') {
+            scene_.toggle_shadow_controller();
+            glutPostRedisplay();
+        }
         if (key == 'e' || key == 'E') {
             scene_.reset_metro_entry();
             glutPostRedisplay();
