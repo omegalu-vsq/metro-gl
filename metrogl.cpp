@@ -6,7 +6,7 @@
 
 namespace gl {
     void MetroGL::setup() {
-        scene_.import("blender/station_vide.glb");
+        scene_.import("blender/scene_metrogl2.glb");
         scene_.import_metro("blender/mf77body.glb", "blender/mf77doorleft.glb", "blender/mf77doorright.glb");
         scene_.import_ltc();
         scene_.import_shadow_controller();
@@ -53,7 +53,7 @@ namespace gl {
     }
 
     void MetroGL::handle_mouse_motion(int x, int y) {
-        const GLfloat mouse_sensitivity = 0.003f;
+        const GLfloat mouse_sensitivity = 0.0015f;
         const GLfloat max_pitch = 1.45f;
 
         if (!mouse_locked_) return;

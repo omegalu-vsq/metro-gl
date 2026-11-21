@@ -50,11 +50,14 @@ namespace gl {
     };
 
     ShaderProgram::ShaderProgram(ShaderProgram&& obj) : id_(obj.id_), vertex_id_(obj.vertex_id_),
-                                                        fragment_id_(obj.fragment_id_), geometry_id_(obj.geometry_id_), state_(obj.state_) {
+                                                        fragment_id_(obj.fragment_id_), geometry_id_(obj.geometry_id_),
+                                                        tess_control_id_(obj.tess_control_id_), tess_eval_id_(obj.tess_eval_id_), state_(obj.state_) {
         obj.id_ = 0;
         obj.vertex_id_ = 0;
         obj.fragment_id_ = 0;
         obj.geometry_id_ = 0;
+        obj.tess_control_id_ = 0;
+        obj.tess_eval_id_ = 0;
         obj.state_ = false;
     }
 
@@ -69,6 +72,16 @@ namespace gl {
         if (geometry_id_) {
             glDetachShader(id_, geometry_id_);
             glDeleteShader(geometry_id_);
+        }
+
+        if (tess_control_id_) {
+            glDetachShader(id_, tess_control_id_);
+            glDeleteShader(tess_control_id_);
+        }
+
+        if (tess_eval_id_) {
+            glDetachShader(id_, tess_eval_id_);
+            glDeleteShader(tess_eval_id_);
         }
 
         glDeleteProgram(id_);
@@ -139,7 +152,7 @@ namespace gl {
     }
 
 
-    ShaderProgram ShaderProgram::make_program(const std::string& vertex_src, const std::string& fragment_src, const std::string& geometry_src) {
+    ShaderProgram ShaderProgram::make_program(const std::string& vertex_src, const std::string& fragment_src, const std::string& geometry_src, const std::string& tess_control_src, const std::string& tess_eval_src) {
         GLuint vertex_id = compile_shader(vertex_src, GL_VERTEX_SHADER); 
         if (!vertex_id) {
         
@@ -171,6 +184,19 @@ namespace gl {
             glAttachShader(id, geometry_id);
         }
 
+        GLuint tess_control_id = 0;
+        GLuint tess_eval_id = 0;
+
+        if (!tess_control_src.empty()) {
+            tess_control_id = compile_shader(tess_control_src, GL_TESS_CONTROL_SHADER);
+            glAttachShader(id, tess_control_id);
+        }
+
+        if (!tess_eval_src.empty()) {
+            tess_eval_id = compile_shader(tess_eval_src, GL_TESS_EVALUATION_SHADER);
+            glAttachShader(id, tess_eval_id);
+        }
+
         glLinkProgram(id);
 
         int link_status = 0;
@@ -189,7 +215,16 @@ namespace gl {
                 glDetachShader(id, geometry_id);
                 glDeleteShader(geometry_id);
             }
+            if (tess_control_id) {
+                glDetachShader(id, tess_control_id);
+                glDeleteShader(tess_control_id);
+            }
+            if (tess_eval_id) {
+                glDetachShader(id, tess_eval_id);
+                glDeleteShader(tess_eval_id);
+            }
             glDeleteProgram(id);
+            program.id_ = 0;
 
             return program;
         } 
@@ -203,6 +238,8 @@ namespace gl {
         program.vertex_id_ = vertex_id;
         program.fragment_id_ = fragment_id;
         program.geometry_id_ = geometry_id;
+        program.tess_control_id_ = tess_control_id;
+        program.tess_eval_id_ = tess_eval_id;
         program.state_ = true;
         return program;
     }

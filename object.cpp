@@ -42,7 +42,14 @@ namespace gl {
         glBindTexture(GL_TEXTURE_2D, id_);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        GLint unpack_alignment;
+        glGetIntegerv(GL_UNPACK_ALIGNMENT, &unpack_alignment);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buffer);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, unpack_alignment);
+
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(buffer);
@@ -150,14 +157,35 @@ namespace gl {
         }
     }
 
-    GLobject GLobject::make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders) {
+    GLobject GLobject::make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders, GLint patch_vertices) {
         GLobject object{std::move(shaders)};
+        object.patch_vertices_ = patch_vertices;
 
         std::vector<GLfloat> buffer;
         load_mesh(src, buffer);
 
         std::vector<GLuint> indices;
         load_indices(src, indices);
+
+        if (patch_vertices == 4) {
+            if (indices.size() % 6 != 0) {
+                std::cerr << "/!\\ GLobject creation failure /!\\ (unpaired quad triangles)\n";
+                return object;
+            }
+
+            std::vector<GLuint> quad_indices;
+
+            for (size_t i = 0; i < indices.size(); i += 6) {
+                if (indices[i] != indices[i + 3] || indices[i + 2] != indices[i + 4]) {
+                    std::cerr << "/!\\ GLobject creation failure /!\\ (incompatible quad triangles)\n";
+                    return object;
+                }
+
+                quad_indices.insert(quad_indices.end(), {indices[i], indices[i + 1], indices[i + 2], indices[i + 5]});
+            }
+
+            indices = std::move(quad_indices);
+        }
 
         GLuint vbo_id;
         GLuint ebo_id;
@@ -333,7 +361,14 @@ namespace gl {
 
         glBindVertexArray(vao_id_);
 
-        glDrawElements(GL_TRIANGLES, nb_indices_, GL_UNSIGNED_INT, 0);
+        GLenum mode = GL_TRIANGLES;
+
+        if (shaders_->has_tessellation()) {
+            glPatchParameteri(GL_PATCH_VERTICES, patch_vertices_);
+            mode = GL_PATCHES;
+        }
+
+        glDrawElements(mode, nb_indices_, GL_UNSIGNED_INT, 0);
         //glDrawArrays(GL_TRIANGLES, 0, nb_vertices_);
 
         glBindVertexArray(0);

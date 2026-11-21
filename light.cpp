@@ -124,7 +124,7 @@ namespace gl {
             return;
         }
 
-        shader_ = std::make_unique<ShaderProgram>(ShaderProgram::make_program("shaders/vertex_shadow.shd", "shaders/frag_shadow.shd", "shaders/geometry_shadow.shd"));
+        shader_ = std::make_unique<ShaderProgram>(ShaderProgram::make_program("shaders/shadow.vert", "shaders/shadow.frag", "shaders/shadow.geo"));
         if (!shader_->is_ready()) return;
 
         GLint active_texture;

@@ -178,8 +178,8 @@ namespace gl {
 
         if (!scene) { std::cout << "/!\\ Metro::import() failed: " << importer.GetErrorString() << std::endl; return; }
 
-        auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro.shd"));
-        auto metro_texture_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro_texture.shd"));
+        auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/metro.frag"));
+        auto metro_texture_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/metro_texture.frag"));
         auto ratp_texture = std::make_shared<Texture>("assets/textures/ratp.jpg", false, true);
 
         std::cout << "Metro meshes: " << scene->mNumMeshes << std::endl;
@@ -220,7 +220,7 @@ namespace gl {
 
         if (!scene) { std::cout << "/!\\ Metro::import_doors() failed: " << importer.GetErrorString() << std::endl; return; }
 
-        auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_metro.shd"));
+        auto metro_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/metro.frag"));
 
         for (size_t i = 0; i < scene->mNumMeshes; i++) {
             Vector3 color;
@@ -251,17 +251,17 @@ namespace gl {
     void Metro::run() {
         z_position_start_ = z_position_;
 
-        if (z_position_ == -100.0f) z_position_target_ = 0.0f;
-        else if (z_position_ == 0.0f) z_position_target_ = 100.0f;
-        else z_position_target_ = -100.0f;
+        if (z_position_ == -150.0f) z_position_target_ = 0.0f;
+        else if (z_position_ == 0.0f) z_position_target_ = 150.0f;
+        else z_position_target_ = -150.0f;
     }
 
     void Metro::reset_entry() {
         door_opening_ = 0.0f;
         target_door_opening_ = 0.0f;
-        z_position_ = -100.0f;
-        z_position_start_ = -100.0f;
-        z_position_target_ = -100.0f;
+        z_position_ = -150.0f;
+        z_position_start_ = -150.0f;
+        z_position_target_ = -150.0f;
     }
 
     bool Metro::update_metro() {
@@ -307,17 +307,17 @@ namespace gl {
 
         if (!scene) { std::cout << "/!\\ Scene::import() failed: " << importer.GetErrorString() << std::endl; return; }
 
-        auto quai_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_quai.shd"));
-        auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_voute.shd"));
-        auto mur_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_mur.shd"));
-        auto ballast_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex_ballast.shd", "shaders/frag_voies.shd"));
-        auto color_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_color.shd"));
-        auto rail_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_rail.shd"));
-        auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_tunnel.shd"));
-        auto emaille_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_emaille.shd"));
-        auto plan_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/vertex.shd", "shaders/frag_plan.shd"));
+        auto quai_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/quai.frag"));
+        auto voute_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/voute.frag"));
+        auto mur_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/mur.frag"));
+        auto ballast_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/ballast.vert", "shaders/voies.frag", "", "shaders/ballast.tesc", "shaders/ballast.tese"));
+        auto color_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/color.frag"));
+        auto rail_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/rail.frag"));
+        auto tunnel_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/tunnel.frag"));
+        auto emaille_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/emaille.frag"));
+        auto plan_shd = std::make_shared<ShaderProgram>(ShaderProgram::make_program("shaders/default.vert", "shaders/plan.frag"));
 
-        shadow_receivers_ = {quai_shd, voute_shd};
+        shadow_receivers_ = {quai_shd, voute_shd, rail_shd, tunnel_shd, ballast_shd};
 
         auto signal_texture = std::make_shared<Texture>("assets/textures/reaumur.png");
         auto plan_metro_texture = std::make_shared<Texture>("assets/textures/plan-metro.png", true, true);
@@ -357,8 +357,8 @@ namespace gl {
                 quai2 = station_obj.back().get();
             }
             else if (name == "voies") {
-                auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], ballast_shd), ballast_texture);
-                obj->set_roughness(0.9f);
+                auto obj = std::make_unique<GLobjectTex>(GLobject::make_object(scene->mMeshes[i], ballast_shd, 4), ballast_texture);
+                obj->set_roughness(1.0f);
 
                 station_obj.push_back(std::move(obj));
                 voies = station_obj.back().get();
@@ -637,6 +637,12 @@ namespace gl {
                 shadow_controller_->select_light(light);
 
                 if (metro) metro->draw_depth(shadow_controller_->shader());
+
+                mur1->draw_depth(shadow_controller_->shader());
+                mur2->draw_depth(shadow_controller_->shader());
+
+                for (size_t i = 0; i < tunnels.size(); i++)
+                    tunnels.at(i)->draw_depth(shadow_controller_->shader());
             }
 
             shadow_controller_->end();
@@ -673,7 +679,7 @@ namespace gl {
         mur2->draw(Vector3{1.0f, 1.0f, 1.0f});
 
         for (size_t i = 0; i < tunnels.size(); i++)
-            tunnels.at(i)->draw(Vector3{0.32f, 0.32f, 0.34f});
+            tunnels.at(i)->draw(Vector3{0.05f, 0.05f, 0.05f});
         for (size_t i = 0; i < bouchons.size(); i++)
             bouchons.at(i)->draw(Vector3{0.0f, 0.0f, 0.0f});
 
