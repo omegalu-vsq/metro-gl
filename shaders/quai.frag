@@ -48,7 +48,7 @@ uniform float metallic;
 float ambient_strength = 0.07;
 
 float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    return fract(sin(dot(p, vec2(13.0, 79.0))) * 10000.0);
 }
 
 float noise(vec2 p) {
@@ -103,7 +103,8 @@ vec3 podotactile_albedo(vec3 opos, out float surface_roughness) {
 }
 
 vec4 LinearTosRGB( in vec4 value ) {
-	return vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );
+    return vec4(mix(pow(value.rgb, vec3(1.0 / 2.4)) * 1.055 - 0.055, value.rgb * 12.92,
+                    lessThanEqual(value.rgb, vec3(0.0031308))), value.a);
 }
 
 float Fpo(float d, float l1, float l2) {
