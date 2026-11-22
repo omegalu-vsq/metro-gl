@@ -5,6 +5,7 @@
 uniform vec3 color;
 
 layout(location=0) out vec4 output_color;
+layout(location=1) out vec4 output_emission;
 
 struct TubeLight {
     vec3 color;
@@ -89,6 +90,8 @@ float I_ltc_line(vec3 p1, vec3 p2) {
 }
 
 void main() {
+    output_emission = vec4(0.0, 0.0, 0.0, 1.0);
+
     vec3 normal = normalize(normal_ws);
 
     float largeur = 100.0;

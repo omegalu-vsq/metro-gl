@@ -1,7 +1,7 @@
 CC = g++
 
-CPP_FILES = camera.cpp matrix.cpp program.cpp vector.cpp object.cpp scene.cpp metrogl.cpp light.cpp
-HXX_FILES = camera.hpp matrix.hpp program.hpp vector.hpp object.hpp scene.hpp metrogl.hpp light.hpp
+CPP_FILES = camera.cpp matrix.cpp program.cpp vector.cpp object.cpp scene.cpp metrogl.cpp light.cpp after_effects.cpp
+HXX_FILES = camera.hpp matrix.hpp program.hpp vector.hpp object.hpp scene.hpp metrogl.hpp light.hpp after_effects.hpp
 OBJ_FILES = $(CPP_FILES:.cpp=.o)
 
 CXX_FLAGS += -Wall -Wextra -O3 -g -std=c++14

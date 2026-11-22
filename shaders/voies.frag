@@ -9,6 +9,7 @@ uniform int shadow_count = 0;
 uniform float shadow_far_plane;
 
 layout(location=0) out vec4 output_color;
+layout(location=1) out vec4 output_emission;
 
 struct TubeLight {
     vec3 color;
@@ -97,6 +98,8 @@ float shadow_visibility(int light) {
 }
 
 void main() {
+    output_emission = vec4(0.0, 0.0, 0.0, 1.0);
+
     float tunnel_depth = 0.0;
     vec3 station_dir_world = vec3(0.0);
 

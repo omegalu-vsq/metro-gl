@@ -10,12 +10,15 @@ namespace gl {
         scene_.import_metro("blender/mf77body.glb", "blender/mf77doorleft.glb", "blender/mf77doorright.glb");
         scene_.import_ltc();
         scene_.import_shadow_controller();
+        after_effects_ = std::make_unique<AfterEffects>(window_width_, window_height_);
 
         update_camera(true);
     }
 
     void MetroGL::display() {
+        after_effects_->begin();
         scene_.draw();
+        after_effects_->apply();
     }
 
     void MetroGL::handle_key(unsigned char key) {

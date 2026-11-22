@@ -51,23 +51,30 @@ namespace gl {
 
     ShaderProgram::ShaderProgram(ShaderProgram&& obj) : id_(obj.id_), vertex_id_(obj.vertex_id_),
                                                         fragment_id_(obj.fragment_id_), geometry_id_(obj.geometry_id_),
-                                                        tess_control_id_(obj.tess_control_id_), tess_eval_id_(obj.tess_eval_id_), state_(obj.state_) {
+                                                        tess_control_id_(obj.tess_control_id_), tess_eval_id_(obj.tess_eval_id_),
+                                                        compute_id_(obj.compute_id_), state_(obj.state_) {
         obj.id_ = 0;
         obj.vertex_id_ = 0;
         obj.fragment_id_ = 0;
         obj.geometry_id_ = 0;
         obj.tess_control_id_ = 0;
         obj.tess_eval_id_ = 0;
+        obj.compute_id_ = 0;
         obj.state_ = false;
     }
 
     ShaderProgram::~ShaderProgram() {
         if (!id_) return;
 
-        glDetachShader(id_, vertex_id_);
-        glDetachShader(id_, fragment_id_);
-        glDeleteShader(vertex_id_);
-        glDeleteShader(fragment_id_);
+        if (vertex_id_) {
+            glDetachShader(id_, vertex_id_);
+            glDeleteShader(vertex_id_);
+        }
+
+        if (fragment_id_) {
+            glDetachShader(id_, fragment_id_);
+            glDeleteShader(fragment_id_);
+        }
 
         if (geometry_id_) {
             glDetachShader(id_, geometry_id_);
@@ -82,6 +89,11 @@ namespace gl {
         if (tess_eval_id_) {
             glDetachShader(id_, tess_eval_id_);
             glDeleteShader(tess_eval_id_);
+        }
+
+        if (compute_id_) {
+            glDetachShader(id_, compute_id_);
+            glDeleteShader(compute_id_);
         }
 
         glDeleteProgram(id_);
@@ -135,6 +147,7 @@ namespace gl {
             std::free(info);
 
             glDeleteShader(id);
+            return 0;
         }
         else {
             std::cout << "Shader infos (" + src + ")\n";
@@ -240,6 +253,30 @@ namespace gl {
         program.geometry_id_ = geometry_id;
         program.tess_control_id_ = tess_control_id;
         program.tess_eval_id_ = tess_eval_id;
+        program.state_ = true;
+        return program;
+    }
+
+    ShaderProgram ShaderProgram::make_compute(const std::string& compute_src) {
+        ShaderProgram program{glCreateProgram()};
+        GLuint compute_id = compile_shader(compute_src, GL_COMPUTE_SHADER);
+        if (!compute_id) return program;
+
+        program.compute_id_ = compute_id;
+        glAttachShader(program.id_, compute_id);
+        glLinkProgram(program.id_);
+
+        GLint link_status;
+        glGetProgramiv(program.id_, GL_LINK_STATUS, &link_status);
+
+        if (link_status != GL_TRUE) {
+            std::cerr << "/!\\ ShaderProgram linkage failure /!\\\n";
+            auto info = program.get_log();
+            std::cerr << info << std::endl;
+            std::free(info);
+            return program;
+        }
+
         program.state_ = true;
         return program;
     }

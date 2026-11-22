@@ -720,8 +720,9 @@ namespace gl {
             shadow_dirty_ = false;
         }
 
-        glClearColor(0.0f, 1.0f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        const GLfloat background[] = {0.0f, 1.0f, 0.1f, 1.0f};
+        glClearBufferfv(GL_COLOR, 0, background);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         init_metro_lights();
 

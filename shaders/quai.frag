@@ -10,6 +10,7 @@ uniform float shadow_far_plane;
 uniform int podotactile_mode;
 
 layout(location = 0) out vec4 output_color;
+layout(location=1) out vec4 output_emission;
 
 struct TubeLight {
     vec3 color;
@@ -243,6 +244,8 @@ vec3 floor_albedo(vec3 opos, vec3 base_color, out float surface_roughness) {
 }
 
 void main() {
+    output_emission = vec4(0.0, 0.0, 0.0, 1.0);
+
     vec3 base_normal = normalize(normal_ws);
 
     if (podotactile_mode != 0) {

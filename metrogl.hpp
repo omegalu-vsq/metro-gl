@@ -2,12 +2,14 @@
 
 #include "camera.hpp"
 #include "scene.hpp"
+#include "after_effects.hpp"
 
 namespace gl {
     class MetroGL {
 
         Camera camera_;
         Scene scene_;
+        std::unique_ptr<AfterEffects> after_effects_;
 
         GLfloat camera_x_ = 10.0f;
         GLfloat camera_y_ = 2.27f;
