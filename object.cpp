@@ -281,7 +281,7 @@ namespace gl {
 
     GLobject GLobject::make_cylinder(std::shared_ptr<ShaderProgram> shaders, float radius, float length) {
         const unsigned int segments = 24;
-        const float pi = 3.14159265f;
+        const float pi = 3.14f;
         const unsigned int bottom = 4 * segments;
         const unsigned int top = bottom + 1;
 
@@ -326,6 +326,25 @@ namespace gl {
         }
 
         return make_object(&mesh, std::move(shaders));
+    }
+
+    GLobject GLobject::make_arcs(std::shared_ptr<ShaderProgram> shaders, const std::vector<Vector3>& points) {
+        aiMesh mesh;
+        mesh.mPrimitiveTypes = aiPrimitiveType_LINE;
+        mesh.mNumVertices = points.size();
+        mesh.mNumFaces = points.size() / 2;
+        mesh.mVertices = new aiVector3D[mesh.mNumVertices];
+        mesh.mFaces = new aiFace[mesh.mNumFaces];
+
+        for (size_t i = 0; i < points.size(); i++)
+            mesh.mVertices[i] = aiVector3D(points.at(i).x_, points.at(i).y_, points.at(i).z_);
+
+        for (unsigned int i = 0; i < mesh.mNumFaces; i++) {
+            mesh.mFaces[i].mNumIndices = 2;
+            mesh.mFaces[i].mIndices = new unsigned int[2]{2 * i, 2 * i + 1};
+        }
+
+        return make_object(&mesh, std::move(shaders), 2);
     }
 
     void GLobject::draw_depth(ShaderProgram& shader, Vector3 offset) {

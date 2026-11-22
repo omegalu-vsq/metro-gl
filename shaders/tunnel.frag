@@ -1,0 +1,174 @@
+#version 450
+
+#define LIGHTS 20
+
+uniform vec3 color;
+uniform samplerCubeArray shadow_map;
+uniform int shadow_count = 0;
+uniform float shadow_far_plane;
+
+layout(location=0) out vec4 output_color;
+
+struct TubeLight {
+    vec3 color;
+    float intensity;
+    float radius;
+    vec3 points[2];
+};
+uniform TubeLight tubelights[LIGHTS];
+
+uniform sampler2D LTC1;
+uniform sampler2D LTC2;
+
+const float LUT_SIZE  = 64.0;
+const float LUT_SCALE = (LUT_SIZE - 1.0)/LUT_SIZE;
+const float LUT_BIAS = 0.5/LUT_SIZE;
+const float PI = 3.14;
+
+mat3 Minv = mat3(1.0);
+mat3 width_matrix = mat3(1.0);
+
+uniform int nb_tubelights;
+uniform vec3 metro_lights[2];
+uniform float metro_light_power;
+
+in vec3 position_ws;
+in vec3 normal_ws;
+in vec3 camera_pos;
+in vec2 uv_frag;
+
+
+uniform float roughness;
+uniform float metallic;
+float ambient_strength = 0.14;
+
+vec4 sRGBToLinear( in vec4 value ) {
+	return vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );
+}
+
+vec4 LinearTosRGB( in vec4 value ) {
+	return vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );
+}
+
+float Fpo(float d, float l1, float l2) {
+    float angle = atan(d * (l2 - l1), d * d + l1 * l2);
+    return (l2 / (d * d + l2 * l2) - l1 / (d * d + l1 * l1)) / d + angle / (d * d);
+}
+
+float Fwt(float d, float l) {
+    return l * l / (d * (d * d + l * l));
+}
+
+float I_diffuse_line(vec3 p1, vec3 p2) {
+    if (p1.z <= 0.0 && p2.z <= 0.0) return 0.0;
+    if (dot(p2 - p1, p2 - p1) < 0.00000001) return 0.0;
+
+    vec3 wt = normalize(p2 - p1);
+    if (p1.z < 0.0) p1 = (p1 * p2.z - p2 * p1.z) / (p2.z - p1.z);
+    if (p2.z < 0.0) p2 = (p2 * p1.z - p1 * p2.z) / (p1.z - p2.z);
+
+    float l1 = dot(p1, wt);
+    float l2 = dot(p2, wt);
+    vec3 po = p1 - l1 * wt;
+    float d = max(length(po), 0.0001);
+
+    float I = Fpo(d, l1, l2) * po.z;
+    I += (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
+    return max(I / PI, 0.0);
+}
+
+float I_ltc_line(vec3 p1, vec3 p2) {
+    vec3 ortho = cross(p1, p2);
+    if (dot(ortho, ortho) < 0.00000001) return 0.0;
+    ortho = normalize(ortho);
+
+    float w = 1.0 / max(length(width_matrix * ortho), 0.0001);
+    return w * I_diffuse_line(Minv * p1, Minv * p2);
+}
+
+float shadow_visibility(int light) {
+    vec3 light_position = (tubelights[light].points[0] + tubelights[light].points[1]) * 0.5;
+    vec3 direction = position_ws - light_position;
+    float distance_fragment = length(direction);
+    if (distance_fragment >= shadow_far_plane || distance_fragment == 0.0) return 1.0;
+    float distance_obstacle = texture(shadow_map, vec4(direction, float(light))).r * shadow_far_plane;
+    return distance_fragment <= distance_obstacle + 0.02 ? 1.0 : 0.0;
+}
+
+void main() {
+    float tunnel_depth = uv_frag.x;
+
+    vec3 N = normalize(normal_ws);
+    vec3 wo = normalize(camera_pos - position_ws);
+    vec3 station_dir_world = vec3(0.0, 0.0, -sign(position_ws.z - 2.9));
+    vec3 diffuse_normal = normalize(mix(N + station_dir_world * 0.8, N, min(tunnel_depth * 2.0, 1.0)));
+
+    vec3 diffuse_axis = abs(diffuse_normal.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    vec3 diffuse_tangent = normalize(cross(diffuse_axis, diffuse_normal));
+    mat3 diffuse_B = transpose(mat3(diffuse_tangent, cross(diffuse_normal, diffuse_tangent), diffuse_normal));
+
+    vec3 albedo = color;
+    vec3 final_color = albedo * ambient_strength;
+
+    float NdotV = clamp(dot(N, wo), 0.0, 1.0);
+    vec2 uvltc = vec2(roughness, sqrt(1.0 - NdotV)) * LUT_SCALE + LUT_BIAS;
+    vec4 t1 = texture(LTC1, uvltc);
+    vec4 t2 = texture(LTC2, uvltc);
+
+    Minv = mat3(vec3(t1.x, 0, t1.y), vec3(0, 1, 0), vec3(t1.z, 0, t1.w));
+    width_matrix = inverse(transpose(Minv));
+
+    vec3 T1 = wo - N * dot(wo, N);
+    if (dot(T1, T1) < 0.00000001) {
+        vec3 axis = abs(N.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+        T1 = cross(axis, N);
+    }
+    T1 = normalize(T1);
+    vec3 T2 = cross(N, T1);
+    mat3 B = transpose(mat3(T1, T2, N));
+
+    vec3 f0 = mix(vec3(0.04), albedo, metallic);
+    vec3 F = f0 * t2.x + (vec3(1.0) - f0) * t2.y;
+    vec3 kd = (vec3(1.0) - f0) * (1.0 - metallic);
+
+    // TUBE LIGHTS
+    for (int i = 0; i < min(nb_tubelights, LIGHTS); i++) {
+        vec3 p1 = tubelights[i].points[0] - position_ws;
+        vec3 p2 = tubelights[i].points[1] - position_ws;
+
+        float diffuse = clamp(tubelights[i].radius * I_diffuse_line(diffuse_B * p1, diffuse_B * p2), 0.0, 1.0);
+        float spec = NdotV > 0.0 ? clamp(tubelights[i].radius * I_ltc_line(B * p1, B * p2), 0.0, 1.0) : 0.0;
+
+        float visibility = i < shadow_count ? shadow_visibility(i) : 1.0;
+        final_color += (kd * albedo * diffuse + F * spec) * tubelights[i].color * tubelights[i].intensity * visibility;
+    }
+
+    // HEADLIGHTS
+    for (int i = 0; i < 2; i++) {
+        float light_power = 0.0;
+        float fade_start = metro_lights[i].z;
+        float fade_end = metro_lights[i].z + 1.2;
+
+        if (position_ws.z > fade_end)
+            light_power = metro_light_power;
+        else if (position_ws.z > fade_start) {
+            float fade = (position_ws.z - fade_start) / (fade_end - fade_start);
+            light_power = mix(0.0, metro_light_power, fade);
+        }
+
+        vec3 dirlight = normalize(metro_lights[i] - position_ws);
+        float diffuse = max(dot(diffuse_normal, dirlight), 0.0);
+
+        float dist = length(metro_lights[i] - position_ws);
+        float attenuation = light_power / (1.0 + 0.2 * dist + 0.08 * dist * dist);
+
+        final_color += albedo * diffuse * attenuation * vec3(1.0, 0.92, 0.75);
+    }
+
+    float fog = tunnel_depth;
+    vec3 fog_color = sRGBToLinear(vec4(0.003, 0.003, 0.004, 1.0)).rgb;
+    final_color = mix(final_color, fog_color, fog);
+
+    final_color = final_color / (vec3(1.0) + final_color);
+    output_color = LinearTosRGB(vec4(final_color, 1.0));
+}

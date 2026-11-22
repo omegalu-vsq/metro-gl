@@ -4,7 +4,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
+
+#include <GL/freeglut.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -98,6 +102,9 @@ namespace gl {
             if (update_lights)
                 right_doors_.at(i).get()->init_lights(lights);
         }
+
+        if (arcs_)
+            arcs_.get()->init_default(camera);
     }
 
     void Metro::init_metro_lights() {
@@ -140,6 +147,19 @@ namespace gl {
         for (size_t i = 0; i < body_.size(); i++)
             if (body_.at(i).get()->transparent())
                 body_.at(i).get()->draw(Vector3{1.0f, 1.0f, 1.0f}, Vector3{0.0f, 0.0f, z_position_});
+
+        if (arcs_ && arc_time_ >= 0.0f && z_position_ != z_position_target_) {
+            arc_shd_.get()->use();
+            GLuint id = arc_shd_.get()->getId();
+
+            glUniform1f(glGetUniformLocation(id, "anim_time"), arc_time_);
+            glUniform1f(glGetUniformLocation(id, "arc_seed"), arc_seed_);
+            glUniform1i(glGetUniformLocation(id, "active_arc"), active_arc_);
+
+            glLineWidth(4.0f);
+            arcs_.get()->draw(Vector3{0.7f, 0.85f, 1.0f}, Vector3{0.0f, 0.0f, z_position_});
+            glLineWidth(1.0f);
+        }
     }
 
     void Metro::draw_depth(ShaderProgram& shader) {
@@ -169,6 +189,54 @@ namespace gl {
         import_body(body);
         import_doors(left_doors, true);
         import_doors(right_doors, false);
+        import_arcs();
+    }
+
+    void Metro::import_arcs() {
+        arc_shd_ = std::make_shared<ShaderProgram>(ShaderProgram::make_program(
+            "shaders/arc.vert", "shaders/arc.frag", "", "shaders/arc.tesc", "shaders/arc.tese"));
+
+        if (!arc_shd_.get()->is_ready()) return;
+
+        std::vector<Vector3> points;
+        const GLfloat bogies[] = {-32.0f, -23.0f, -17.0f, -8.0f, -2.0f, 7.0f, 13.0f, 22.0f, 28.0f, 37.0f};
+
+        for (GLfloat z : bogies) {
+            z = 37.0f + (z - 37.0f) * 0.995f - 1.25f;
+            points.push_back(Vector3{13.575f, -0.40f, z - 0.325f});
+            points.push_back(Vector3{13.575f, -0.42f, z + 0.325f});
+        }
+
+        arc_count_ = points.size() / 2;
+        arcs_ = std::make_unique<GLobject>(GLobject::make_arcs(arc_shd_, points));
+
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    }
+
+    void Metro::update_arcs() {
+        if (!arcs_) return;
+
+        const GLint arc_duration = 200;
+        GLint now = glutGet(GLUT_ELAPSED_TIME);
+
+        if (z_position_ == z_position_target_) {
+            arc_time_ = -1.0f;
+            next_arc_time_ = now + 250;
+            return;
+        }
+
+        if (arc_time_ >= 0.0f) {
+            arc_time_ = static_cast<GLfloat>(now - arc_start_time_) / arc_duration;
+            if (arc_time_ >= 1.0f) arc_time_ = -1.0f;
+        }
+
+        if (arc_time_ < 0.0f && now >= next_arc_time_) {
+            active_arc_ = std::rand() % arc_count_;
+            arc_seed_ = std::rand() % 10000;
+            arc_start_time_ = now;
+            arc_time_ = 0.0f;
+            next_arc_time_ = now + arc_duration + 250 + std::rand() % 1000;
+        }
     }
 
     void Metro::import_body(const std::string& src) {
@@ -257,6 +325,7 @@ namespace gl {
     }
 
     void Metro::reset_entry() {
+        arc_time_ = -1.0f;
         door_opening_ = 0.0f;
         target_door_opening_ = 0.0f;
         z_position_ = -150.0f;
@@ -265,6 +334,8 @@ namespace gl {
     }
 
     bool Metro::update_metro() {
+        update_arcs();
+
         // DOORS
         const GLfloat door_step = 0.012f;
 
@@ -671,7 +742,7 @@ namespace gl {
         for (size_t i = 0; i < traverses.size(); i++)
             traverses.at(i)->draw(Vector3{0.04f, 0.04f, 0.04f});
         for (size_t i = 0; i < tiges.size(); i++)
-            tiges.at(i)->draw(Vector3{0.45f, 0.45f, 0.45f});
+            tiges.at(i)->draw(Vector3{0.08f, 0.08f, 0.08f});
 
         sous_quai1->draw(Vector3{0.1f, 0.1f, 0.1f});
         sous_quai2->draw(Vector3{0.1f, 0.1f, 0.1f});

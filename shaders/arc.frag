@@ -1,0 +1,10 @@
+#version 450
+
+uniform vec3 color;
+uniform float anim_time;
+
+layout(location=0) out vec4 output_color;
+
+void main() {
+    output_color = vec4(color, 1.0 - anim_time);
+}

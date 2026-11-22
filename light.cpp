@@ -10,7 +10,7 @@ namespace gl {
     std::pair<GLlightTube, std::unique_ptr<GLobject>> GLlightTube::make_light_tube(Vector3 color, Vector3 pos, float intensity, float radius, float length, std::shared_ptr<ShaderProgram> shaders, Vector3 tangent) {
         // geometry construction
         const unsigned int segments = 24;
-        const float pi = 3.14159265f;
+        const float pi = 3.14f;
         const unsigned int bottom = 4 * segments;
         const unsigned int top = bottom + 1;
 

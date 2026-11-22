@@ -16,6 +16,15 @@ namespace gl {
         std::vector<std::unique_ptr<GLobjectMetro>> left_doors_;
         std::vector<std::unique_ptr<GLobjectMetro>> right_doors_;
 
+        std::unique_ptr<GLobject> arcs_;
+        std::shared_ptr<ShaderProgram> arc_shd_;
+        GLint arc_count_ = 0;
+        GLint active_arc_ = 0;
+        GLint arc_start_time_ = 0;
+        GLint next_arc_time_ = 0;
+        GLfloat arc_time_ = -1.0f;
+        GLfloat arc_seed_ = 0.0f;
+
         GLfloat door_opening_ = 0.0f;
         GLfloat target_door_opening_ = 0.0f;
 
@@ -25,6 +34,8 @@ namespace gl {
 
         void import_body(const std::string& src);
         void import_doors(const std::string& src, bool left);
+        void import_arcs();
+        void update_arcs();
 
         public:
         Metro() = default;

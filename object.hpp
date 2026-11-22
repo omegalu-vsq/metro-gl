@@ -61,6 +61,7 @@ namespace gl {
         static GLobject make_object(const aiMesh* src, std::shared_ptr<ShaderProgram> shaders, GLint patch_vertices = 3);
         static GLobject make_strip(std::shared_ptr<ShaderProgram> shaders, float x0, float x1, float y, float z0, float z1);
         static GLobject make_cylinder(std::shared_ptr<ShaderProgram> shaders, float radius, float length);
+        static GLobject make_arcs(std::shared_ptr<ShaderProgram> shaders, const std::vector<Vector3>& points);
     };
 
     class GLobjectPodo : public GLobject {
