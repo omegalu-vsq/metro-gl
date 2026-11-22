@@ -7,10 +7,10 @@ namespace gl {
         compute_ = std::make_unique<ShaderProgram>(ShaderProgram::make_compute("shaders/glow.comp"));
         display_ = std::make_unique<ShaderProgram>(ShaderProgram::make_program("shaders/screen.vert", "shaders/screen.frag"));
 
-        glGenTextures(4, textures_);
+        glGenTextures(3, textures_);
         glActiveTexture(GL_TEXTURE0);
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             glBindTexture(GL_TEXTURE_2D, textures_[i]);
             glTexStorage2D(GL_TEXTURE_2D, 1, i == 0 ? GL_RGBA8 : GL_RGBA16F, width_, height_);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -43,7 +43,7 @@ namespace gl {
         glDeleteVertexArrays(1, &vao_);
         glDeleteFramebuffers(1, &framebuffer_);
         glDeleteRenderbuffers(1, &depth_buffer_);
-        glDeleteTextures(4, textures_);
+        glDeleteTextures(3, textures_);
     }
 
     void AfterEffects::begin() {
@@ -62,16 +62,10 @@ namespace gl {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textures_[0]);
         glActiveTexture(GL_TEXTURE1);
-
-        GLint horizontal_id = glGetUniformLocation(compute_->getId(), "horizontal");
-
-        for (int i = 0; i < 2; i++) {
-            glBindTexture(GL_TEXTURE_2D, textures_[i + 1]);
-            glBindImageTexture(0, textures_[i + 2], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-            glUniform1i(horizontal_id, i == 0);
-            glDispatchCompute((width_ + 15) / 16, (height_ + 15) / 16, 1);
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-        }
+        glBindTexture(GL_TEXTURE_2D, textures_[1]);
+        glBindImageTexture(0, textures_[2], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        glDispatchCompute((width_ + 15) / 16, (height_ + 15) / 16, 1);
+        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
@@ -79,7 +73,7 @@ namespace gl {
 
         display_->use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures_[3]);
+        glBindTexture(GL_TEXTURE_2D, textures_[2]);
         glBindVertexArray(vao_);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);

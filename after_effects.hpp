@@ -8,7 +8,7 @@ namespace gl {
     class AfterEffects {
         GLuint framebuffer_ = 0;
         GLuint depth_buffer_ = 0;
-        GLuint textures_[4] = {0}; // couleur, emission, flou horizontal, image finale
+        GLuint textures_[3] = {0}; // couleur, emission, image finale
         GLuint vao_ = 0;
 
         GLsizei width_;
