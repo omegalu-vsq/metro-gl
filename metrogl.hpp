@@ -30,8 +30,8 @@ namespace gl {
         bool move_up_ = false;
         bool move_down_ = false;
 
-        int window_width_ = 1920;
-        int window_height_ = 1080;
+        int window_width_ = 2560;
+        int window_height_ = 1440;
 
         void update_camera(bool update_lights = false);
         void toggle_mouse_lock();

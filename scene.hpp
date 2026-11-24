@@ -58,6 +58,7 @@ namespace gl {
         std::vector<std::shared_ptr<ShaderProgram>> shadow_receivers_;
         bool shadow_enabled_ = true;
         bool shadow_dirty_ = true;
+        bool shadow_debug_ = false;
 
         public:
 
@@ -99,6 +100,7 @@ namespace gl {
         void import_ltc();
         void import_shadow_controller();
         void toggle_shadow_controller();
+        void toggle_shadow_debug();
 
         void init(Camera camera, bool update_lights = true);
         void init_metro_lights();

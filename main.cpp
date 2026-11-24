@@ -44,8 +44,8 @@ bool init_glut(int* argc, char* argv[]) {
     glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
 
-    const int window_width = 1920;
-    const int window_height = 1080;
+    const int window_width = 2560;
+    const int window_height = 1440;
     const int screen_width = glutGet(GLUT_SCREEN_WIDTH);
     const int screen_height = glutGet(GLUT_SCREEN_HEIGHT);
     const int window_x = screen_width > window_width ? (screen_width - window_width) / 2 : 0;

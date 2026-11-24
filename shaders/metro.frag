@@ -137,6 +137,8 @@ void main() {
     vec3 final_color = albedo * ambient_strength;
 
     float NdotV = clamp(dot(N, wo), 0.0, 1.0);
+
+    // LTC
     vec2 uvltc = vec2(roughness, sqrt(1.0 - NdotV)) * LUT_SCALE + LUT_BIAS;
     vec4 t1 = texture(LTC1, uvltc);
     vec4 t2 = texture(LTC2, uvltc);

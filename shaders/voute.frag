@@ -5,6 +5,7 @@
 uniform vec3 color;
 uniform samplerCubeArray shadow_map;
 uniform int shadow_count = 0;
+uniform bool shadow_debug;
 uniform float shadow_far_plane;
 
 layout(location=0) out vec4 output_color;
@@ -105,6 +106,12 @@ float shadow_visibility(int light) {
 void main() {
     output_emission = vec4(0.0, 0.0, 0.0, 1.0);
 
+    if (shadow_debug && shadow_count > 0) {
+        float visibility = shadow_visibility(min(3, shadow_count - 1));
+        output_color = vec4(mix(vec3(0.9, 0.1, 0.1), vec3(0.9), visibility), 1.0);
+        return;
+    }
+
     vec3 normal = normalize(normal_ws);
 
     float hauteur = 256.0;
@@ -165,6 +172,8 @@ void main() {
     const float metro_specular_strength = 0.1;
 
     float NdotV = clamp(dot(N, wo), 0.0, 1.0);
+
+    // LTC
     vec2 uvltc = vec2(roughness, sqrt(1.0 - NdotV)) * LUT_SCALE + LUT_BIAS;
     vec4 t1 = texture(LTC1, uvltc);
     vec4 t2 = texture(LTC2, uvltc);

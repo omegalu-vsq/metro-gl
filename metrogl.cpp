@@ -33,6 +33,10 @@ namespace gl {
             scene_.toggle_shadow_controller();
             glutPostRedisplay();
         }
+        if (key == 'j' || key == 'J') {
+            scene_.toggle_shadow_debug();
+            glutPostRedisplay();
+        }
         if (key == 'e' || key == 'E') {
             scene_.reset_metro_entry();
             glutPostRedisplay();

@@ -37,8 +37,8 @@ uniform vec3 model_offset;
 uniform float roughness;
 uniform float metallic;
 float ambient_strength = 0.08;
-float grain_scale = 1.0;
-float grain_strength = 0.1;
+float grain_scale = 50.0;
+float grain_strength = 0.0025;
 
 float hash(vec2 p) {
     return fract(sin(dot(p, vec2(13.0, 79.0))) * 10000.0);
@@ -129,6 +129,8 @@ void main() {
     vec3 final_color = albedo * ambient_strength;
 
     float NdotV = clamp(dot(N, wo), 0.0, 1.0);
+
+    // LTC
     vec2 uvltc = vec2(roughness, sqrt(1.0 - NdotV)) * LUT_SCALE + LUT_BIAS;
     vec4 t1 = texture(LTC1, uvltc);
     vec4 t2 = texture(LTC2, uvltc);

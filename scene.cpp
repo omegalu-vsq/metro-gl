@@ -642,6 +642,15 @@ namespace gl {
         shadow_dirty_ = true;
     }
 
+    void Scene::toggle_shadow_debug() {
+        shadow_debug_ = !shadow_debug_;
+
+        for (size_t i = 0; i < shadow_receivers_.size(); i++) {
+            shadow_receivers_.at(i)->use();
+            glUniform1i(glGetUniformLocation(shadow_receivers_.at(i)->getId(), "shadow_debug"), shadow_debug_);
+        }
+    }
+
     void Scene::init(Camera camera, bool update_lights) {
         for (size_t i = 0; i < station_obj.size(); i++) {
             station_obj.at(i).get()->init_default(camera);

@@ -6,6 +6,7 @@ uniform vec3 color;
 uniform float roughness;
 uniform samplerCubeArray shadow_map;
 uniform int shadow_count = 0;
+uniform bool shadow_debug;
 uniform float shadow_far_plane;
 uniform int podotactile_mode;
 
@@ -160,6 +161,8 @@ vec3 shade_surface(vec3 normal, vec3 albedo, float surface_roughness) {
     vec3 final_color = albedo * ambient_strength;
 
     float NdotV = clamp(dot(N, wo), 0.0, 1.0);
+
+    // LTC
     vec2 uvltc = vec2(surface_roughness, sqrt(1.0 - NdotV)) * LUT_SCALE + LUT_BIAS;
     vec4 t1 = texture(LTC1, uvltc);
     vec4 t2 = texture(LTC2, uvltc);
@@ -246,6 +249,12 @@ vec3 floor_albedo(vec3 opos, vec3 base_color, out float surface_roughness) {
 
 void main() {
     output_emission = vec4(0.0, 0.0, 0.0, 1.0);
+
+    if (shadow_debug && shadow_count > 0) {
+        float visibility = shadow_visibility(min(3, shadow_count - 1));
+        output_color = vec4(mix(vec3(0.9, 0.1, 0.1), vec3(0.9), visibility), 1.0);
+        return;
+    }
 
     vec3 base_normal = normalize(normal_ws);
 
